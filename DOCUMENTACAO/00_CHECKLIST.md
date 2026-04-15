@@ -138,3 +138,19 @@ Implementação concluída: eliminação de anúncios com confirmação e upload
 - [x] Freguesias filtradas por concelho selecionado
 - [x] Dropdown de freguesia em formato compacto com expansão ao foco
 - [x] Seleções preservadas em criação/edição e em erros de validação
+
+---
+
+## Fase 16: Estilo das Dashboards (✅ COMPLETO)
+- [x] Área pessoal com visual moderno
+- [x] Painel de anunciante modernizado
+- [x] Cartões de métricas (KPI) adicionados
+- [x] Lista de imóveis do anunciante em cartões com ações diretas
+- [x] Design responsivo para mobile
+
+---
+
+## Fase 17: Portabilidade para outra máquina (✅ COMPLETO)
+- [x] Ficheiro `requirements.txt` criado com versões fixas
+- [x] Guia detalhado de continuidade criado
+- [x] Passos de instalação, configuração e validação documentados

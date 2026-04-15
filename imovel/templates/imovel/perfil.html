@@ -3,35 +3,134 @@
 {% block title %}Área Pessoal{% endblock %}
 
 {% block content %}
-<div class="card">
-    <h2 style="margin-top:0;">Área pessoal</h2>
-    <p><strong>Utilizador:</strong> {{ user.username }}</p>
-    <p><strong>Email:</strong> {{ user.email|default:'Sem email definido' }}</p>
-    <p><strong>Tipo de conta:</strong> {{ perfil.get_tipo_utilizador_display }}</p>
+<style>
+    .dash-wrap {
+        max-width: 980px;
+        margin: 0 auto;
+    }
+    .dash-hero {
+        border-radius: 14px;
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 65%, #334155 100%);
+        color: #fff;
+        padding: 20px;
+        margin-bottom: 14px;
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.24);
+    }
+    .dash-hero h2 {
+        margin: 0;
+        font-size: 1.45rem;
+    }
+    .dash-hero p {
+        margin: 8px 0 0;
+        color: #cbd5e1;
+    }
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 12px;
+        margin-bottom: 14px;
+    }
+    .stat-card {
+        border: 1px solid #e2e8f0;
+        background: #ffffff;
+        border-radius: 12px;
+        padding: 12px;
+    }
+    .stat-label {
+        font-size: 12px;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+    }
+    .stat-value {
+        font-size: 1rem;
+        font-weight: 700;
+        margin-top: 4px;
+        color: #0f172a;
+        word-break: break-word;
+    }
+    .cta-row {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 10px;
+    }
+    .mini-list {
+        display: grid;
+        gap: 8px;
+    }
+    .mini-item {
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        background: #f8fafc;
+        padding: 10px;
+    }
+    .mini-item a {
+        color: #1d4ed8;
+        text-decoration: none;
+        font-weight: 600;
+    }
+</style>
 
-    {% if perfil.is_anunciante %}
-        <p><strong>Total de imóveis associados ao seu email:</strong> {{ total_imoveis_associados }}</p>
-        <a class="btn" href="{% url 'imovel:painel_anunciante' %}">Ir para painel de anunciante</a>
-    {% else %}
-        <p class="muted">Conta comum: pode pesquisar imóveis e gerir sessão.</p>
-    {% endif %}
-</div>
+<div class="dash-wrap">
+    <div class="dash-hero">
+        <h2>Área pessoal</h2>
+        <p>Gestão de conta e visão rápida da sua atividade no portal imobiliário.</p>
+    </div>
 
-<div class="card">
-    <h3 style="margin-top:0;">Últimos imóveis associados</h3>
-    {% if perfil.is_anunciante and imoveis_associados %}
-        <ul>
-            {% for item in imoveis_associados %}
-                <li>
-                    <a href="{% url 'imovel:detalhe_imovel' item.id_imovel %}">{{ item.morada }}</a>
-                    — €{{ item.preco }}
-                </li>
-            {% endfor %}
-        </ul>
-    {% elif perfil.is_anunciante %}
-        <p class="muted">Não existem imóveis associados ao seu email neste momento.</p>
-    {% else %}
-        <p class="muted">Esta secção é usada para mostrar os seus imóveis quando a conta é do tipo anunciante.</p>
-    {% endif %}
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-label">Utilizador</div>
+            <div class="stat-value">{{ user.username }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Email</div>
+            <div class="stat-value">{{ user.email|default:'Sem email definido' }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Tipo de conta</div>
+            <div class="stat-value">{{ perfil.get_tipo_utilizador_display }}</div>
+        </div>
+        {% if perfil.is_anunciante %}
+            <div class="stat-card">
+                <div class="stat-label">Imóveis associados</div>
+                <div class="stat-value">{{ total_imoveis_associados }}</div>
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="card">
+        <h3 style="margin-top:0;">Ações rápidas</h3>
+        {% if perfil.is_anunciante %}
+            <p class="muted">A sua conta tem acesso ao painel de anunciante e gestão de anúncios.</p>
+            <div class="cta-row">
+                <a class="btn" href="{% url 'imovel:painel_anunciante' %}">Ir para painel de anunciante</a>
+                <a class="btn" style="background:#0ea5a4;" href="{% url 'imovel:criar_anuncio' %}">Criar anúncio</a>
+            </div>
+        {% else %}
+            <p class="muted">Conta comum: pode pesquisar imóveis, ver detalhes e gerir sessão.</p>
+            <div class="cta-row">
+                <a class="btn" href="{% url 'imovel:lista_imoveis' %}">Pesquisar imóveis</a>
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="card">
+        <h3 style="margin-top:0;">Últimos imóveis associados</h3>
+        {% if perfil.is_anunciante and imoveis_associados %}
+            <div class="mini-list">
+                {% for item in imoveis_associados %}
+                    <div class="mini-item">
+                        <a href="{% url 'imovel:detalhe_imovel' item.id_imovel %}">{{ item.morada }}</a>
+                        <div class="muted" style="margin-top:4px;">€{{ item.preco }}</div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% elif perfil.is_anunciante %}
+            <p class="muted">Não existem imóveis associados ao seu email neste momento.</p>
+        {% else %}
+            <p class="muted">Esta secção mostra imóveis quando a conta é do tipo anunciante.</p>
+        {% endif %}
+    </div>
 </div>
 {% endblock %}

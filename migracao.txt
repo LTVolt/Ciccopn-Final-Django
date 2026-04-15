@@ -1,0 +1,61 @@
+Para correr noutra máquina, deves exportar duas coisas:
+
+A base de dados MySQL (estrutura + dados)
+A pasta media do Django (imagens que vocês fizeram upload)
+Se exportares só a BD, vais perder as fotos no novo computador.
+
+Passo a passo recomendado
+
+Exportar a base de dados atual (na máquina de origem)
+No terminal com cliente MySQL instalado, executa:
+
+mysqldump -h 172.23.21.121 -P 3306 -u 6083062 -p --default-character-set=utf8mb4 --routines --triggers --events imociccopngrupo1 > imociccopngrupo1_backup.sql
+
+Vai pedir password, e gera o ficheiro SQL completo.
+
+Copiar também os ficheiros de imagem
+No teu projeto, copia a pasta:
+media/
+
+Em Windows, podes zipar:
+
+media/
+imociccopngrupo1_backup.sql
+Na nova máquina, preparar MySQL e criar base vazia
+Exemplo:
+
+mysql -h NOVO_HOST -P 3306 -u NOVO_USER -p -e "CREATE DATABASE imociccopngrupo1 CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+
+Importar o dump na nova máquina
+mysql -h NOVO_HOST -P 3306 -u NOVO_USER -p imociccopngrupo1 < imociccopngrupo1_backup.sql
+
+Restaurar a pasta media no novo projeto
+Coloca a pasta media no root do projeto (mesmo nível de manage.py), para bater com:
+
+MEDIA_URL = /media/
+MEDIA_ROOT = BASE_DIR / media
+Ajustar ligação da BD no settings.py
+Atualiza os dados de ligação no ficheiro settings.py, conforme o novo ambiente (host, user, password).
+
+Validar Django no novo computador
+python manage.py check
+python manage.py migrate --fake-initial
+python manage.py runserver
+
+Quando usar --fake-initial
+
+Usa quando as tabelas já vieram do dump e não queres que o Django tente recriá-las.
+Opção alternativa com interface gráfica
+Se preferires GUI, podes fazer tudo pelo MySQL Workbench:
+
+Data Export (exportar schema + data)
+Data Import/Restore (importar no novo host)
+Checklist rápido de migração da BD
+
+Exportei SQL completo com mysqldump
+Copiei pasta media
+Criei base no destino
+Importei SQL
+Repus media no projeto
+Ajustei settings.py
+Corri check, migrate --fake-initial, runserver

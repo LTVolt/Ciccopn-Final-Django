@@ -3,29 +3,145 @@
 {% block title %}Painel de Anunciante{% endblock %}
 
 {% block content %}
-<div class="card">
-    <h2 style="margin-top:0;">Painel de anunciante</h2>
-    <p><strong>Conta:</strong> {{ user.username }} ({{ perfil.get_tipo_utilizador_display }})</p>
-    <p><strong>Total de imóveis associados:</strong> {{ total_imoveis }}</p>
-    <p class="muted">Os imóveis são associados através do email da conta com o email do anunciante na base de dados.</p>
-    <a class="btn" href="{% url 'imovel:criar_anuncio' %}">Criar novo anúncio</a>
-</div>
+<style>
+    .dash-wrap {
+        max-width: 1020px;
+        margin: 0 auto;
+    }
+    .dash-hero {
+        border-radius: 14px;
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 65%, #334155 100%);
+        color: #fff;
+        padding: 20px;
+        margin-bottom: 14px;
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.24);
+    }
+    .dash-hero h2 { margin: 0; font-size: 1.45rem; }
+    .dash-hero p { margin: 8px 0 0; color: #cbd5e1; }
+    .kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 12px;
+        margin-bottom: 14px;
+    }
+    .kpi-card {
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 12px;
+    }
+    .kpi-label {
+        font-size: 12px;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+    }
+    .kpi-value {
+        margin-top: 4px;
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #0f172a;
+    }
+    .acoes-topo {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 10px;
+    }
+    .lista-imoveis {
+        display: grid;
+        gap: 10px;
+    }
+    .item-imovel {
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        background: #f8fafc;
+        padding: 12px;
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        align-items: center;
+    }
+    .item-meta a {
+        color: #1d4ed8;
+        text-decoration: none;
+        font-weight: 700;
+    }
+    .item-meta .muted {
+        margin-top: 4px;
+        font-size: 14px;
+    }
+    .item-acoes {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+    }
+    .btn-sm {
+        padding: 6px 10px;
+        font-size: 13px;
+    }
+    @media (max-width: 760px) {
+        .item-imovel {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .item-acoes {
+            width: 100%;
+            justify-content: flex-start;
+        }
+    }
+</style>
 
-<div class="card">
-    <h3 style="margin-top:0;">Os seus imóveis</h3>
-    {% if imoveis %}
-        <ul style="padding-left: 18px;">
-            {% for item in imoveis %}
-                <li style="margin-bottom: 8px;">
-                    <a href="{% url 'imovel:detalhe_imovel' item.id_imovel %}">{{ item.morada }}</a>
-                    — €{{ item.preco }} — {{ item.id_freguesia.nome }}
-                    <a class="btn" style="margin-left: 8px; padding: 4px 8px;" href="{% url 'imovel:editar_anuncio' item.id_imovel %}">Editar</a>
-                    <a class="btn" style="margin-left: 8px; padding: 4px 8px; background:#dc2626;" href="{% url 'imovel:apagar_anuncio' item.id_imovel %}">Apagar</a>
-                </li>
-            {% endfor %}
-        </ul>
-    {% else %}
-        <p class="muted">Ainda não há imóveis associados ao seu email.</p>
-    {% endif %}
+<div class="dash-wrap">
+    <div class="dash-hero">
+        <h2>Painel de anunciante</h2>
+        <p>Gestão rápida dos seus anúncios, com acesso a criação, edição e remoção.</p>
+    </div>
+
+    <div class="kpi-grid">
+        <div class="kpi-card">
+            <div class="kpi-label">Conta</div>
+            <div class="kpi-value">{{ user.username }}</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">Tipo</div>
+            <div class="kpi-value">{{ perfil.get_tipo_utilizador_display }}</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">Imóveis associados</div>
+            <div class="kpi-value">{{ total_imoveis }}</div>
+        </div>
+    </div>
+
+    <div class="card">
+        <p class="muted" style="margin-top:0;">Os imóveis são associados através do email da conta com o email do anunciante na base de dados.</p>
+        <div class="acoes-topo">
+            <a class="btn" href="{% url 'imovel:criar_anuncio' %}">Criar novo anúncio</a>
+            <a class="btn" style="background:#0ea5a4;" href="{% url 'imovel:lista_imoveis' %}">Ver pesquisa pública</a>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3 style="margin-top:0;">Os seus imóveis</h3>
+        {% if imoveis %}
+            <div class="lista-imoveis">
+                {% for item in imoveis %}
+                    <div class="item-imovel">
+                        <div class="item-meta">
+                            <a href="{% url 'imovel:detalhe_imovel' item.id_imovel %}">{{ item.morada }}</a>
+                            <div class="muted">€{{ item.preco }} · {{ item.id_freguesia.nome }}</div>
+                        </div>
+                        <div class="item-acoes">
+                            <a class="btn btn-sm" href="{% url 'imovel:editar_anuncio' item.id_imovel %}">Editar</a>
+                            <a class="btn btn-sm" style="background:#dc2626;" href="{% url 'imovel:apagar_anuncio' item.id_imovel %}">Apagar</a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="muted">Ainda não há imóveis associados ao seu email.</p>
+        {% endif %}
+    </div>
 </div>
 {% endblock %}

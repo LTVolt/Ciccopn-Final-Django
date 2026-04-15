@@ -60,6 +60,8 @@ Bem-vindo! Aqui encontra toda a documentação sobre o desenvolvimento do seu si
 - **[11_ELIMINACAO_E_UPLOAD_IMAGENS.md](11_ELIMINACAO_E_UPLOAD_IMAGENS.md)** - Eliminação com confirmação e upload de imagem
 - **[12_GALERIA_MULTIFOTOS.md](12_GALERIA_MULTIFOTOS.md)** - Galeria multi-fotos com setas na listagem
 - **[13_ESTILO_FORM_ANUNCIO_E_LOCALIZACAO.md](13_ESTILO_FORM_ANUNCIO_E_LOCALIZACAO.md)** - Estilo moderno e dropdowns dependentes no formulário
+- **[14_ESTILO_DASHBOARDS_UTILIZADOR.md](14_ESTILO_DASHBOARDS_UTILIZADOR.md)** - Modernização visual das dashboards
+- **[15_CONTINUIDADE_NOUTRA_MAQUINA.md](15_CONTINUIDADE_NOUTRA_MAQUINA.md)** - Como instalar e continuar noutra máquina
 
 ---
 
