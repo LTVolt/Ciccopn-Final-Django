@@ -1,0 +1,18 @@
+{% extends 'imovel/base.html' %}
+
+{% block title %}Entrar{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 460px;">
+    <h2 style="margin-top:0;">Entrar na conta</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        {% if next %}
+            <input type="hidden" name="next" value="{{ next }}">
+        {% endif %}
+        <button class="btn" type="submit">Entrar</button>
+    </form>
+    <p class="muted">Ainda não tem conta? <a href="{% url 'imovel:registo' %}">Criar conta</a></p>
+</div>
+{% endblock %}

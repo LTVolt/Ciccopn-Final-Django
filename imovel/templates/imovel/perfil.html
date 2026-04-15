@@ -1,0 +1,37 @@
+{% extends 'imovel/base.html' %}
+
+{% block title %}Área Pessoal{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2 style="margin-top:0;">Área pessoal</h2>
+    <p><strong>Utilizador:</strong> {{ user.username }}</p>
+    <p><strong>Email:</strong> {{ user.email|default:'Sem email definido' }}</p>
+    <p><strong>Tipo de conta:</strong> {{ perfil.get_tipo_utilizador_display }}</p>
+
+    {% if perfil.is_anunciante %}
+        <p><strong>Total de imóveis associados ao seu email:</strong> {{ total_imoveis_associados }}</p>
+        <a class="btn" href="{% url 'imovel:painel_anunciante' %}">Ir para painel de anunciante</a>
+    {% else %}
+        <p class="muted">Conta comum: pode pesquisar imóveis e gerir sessão.</p>
+    {% endif %}
+</div>
+
+<div class="card">
+    <h3 style="margin-top:0;">Últimos imóveis associados</h3>
+    {% if perfil.is_anunciante and imoveis_associados %}
+        <ul>
+            {% for item in imoveis_associados %}
+                <li>
+                    <a href="{% url 'imovel:detalhe_imovel' item.id_imovel %}">{{ item.morada }}</a>
+                    — €{{ item.preco }}
+                </li>
+            {% endfor %}
+        </ul>
+    {% elif perfil.is_anunciante %}
+        <p class="muted">Não existem imóveis associados ao seu email neste momento.</p>
+    {% else %}
+        <p class="muted">Esta secção é usada para mostrar os seus imóveis quando a conta é do tipo anunciante.</p>
+    {% endif %}
+</div>
+{% endblock %}

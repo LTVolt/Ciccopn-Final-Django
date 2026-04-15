@@ -1,0 +1,78 @@
+{% extends 'imovel/base.html' %}
+
+{% block title %}Registo{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 520px;">
+    <h2 style="margin-top:0;">Criar conta</h2>
+    <p class="muted">Escolha o tipo de conta: comum para navegação geral, anunciante para área de anúncios.</p>
+    <form method="post">
+        {% csrf_token %}
+        <div>
+            {{ form.username.label_tag }}
+            {{ form.username }}
+            {{ form.username.errors }}
+        </div>
+        <div>
+            {{ form.first_name.label_tag }}
+            {{ form.first_name }}
+            {{ form.first_name.errors }}
+        </div>
+        <div>
+            {{ form.last_name.label_tag }}
+            {{ form.last_name }}
+            {{ form.last_name.errors }}
+        </div>
+        <div>
+            {{ form.email.label_tag }}
+            {{ form.email }}
+            {{ form.email.errors }}
+        </div>
+        <div>
+            {{ form.telefone.label_tag }}
+            {{ form.telefone }}
+            {{ form.telefone.errors }}
+        </div>
+        <div>
+            {{ form.tipo_utilizador.label_tag }}
+            {{ form.tipo_utilizador }}
+            {{ form.tipo_utilizador.errors }}
+        </div>
+        <div id="tipo_anunciante_div" style="display: none;">
+            {{ form.tipo_anunciante.label_tag }}
+            {{ form.tipo_anunciante }}
+            {{ form.tipo_anunciante.errors }}
+        </div>
+        <div>
+            {{ form.password1.label_tag }}
+            {{ form.password1 }}
+            {{ form.password1.errors }}
+        </div>
+        <div>
+            {{ form.password2.label_tag }}
+            {{ form.password2 }}
+            {{ form.password2.errors }}
+        </div>
+        <button class="btn" type="submit">Criar conta</button>
+    </form>
+    <p class="muted">Já tem conta? <a href="{% url 'imovel:login' %}">Entrar</a></p>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const tipoUtilizadorSelect = document.querySelector('#id_tipo_utilizador');
+    const tipoAnuncianteDiv = document.querySelector('#tipo_anunciante_div');
+
+    function toggleTipoAnunciante() {
+        if (tipoUtilizadorSelect.value === 'ANUNCIANTE') {
+            tipoAnuncianteDiv.style.display = 'block';
+        } else {
+            tipoAnuncianteDiv.style.display = 'none';
+        }
+    }
+
+    tipoUtilizadorSelect.addEventListener('change', toggleTipoAnunciante);
+    toggleTipoAnunciante(); // Initial check
+});
+</script>
+{% endblock %}

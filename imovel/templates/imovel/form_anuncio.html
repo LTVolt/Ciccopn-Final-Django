@@ -1,0 +1,34 @@
+{% extends 'imovel/base.html' %}
+
+{% block title %}{% if modo == 'editar' %}Editar anúncio{% else %}Novo anúncio{% endif %}{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 720px;">
+    <h2 style="margin-top:0;">
+        {% if modo == 'editar' %}
+            Editar anúncio
+        {% else %}
+            Criar novo anúncio
+        {% endif %}
+    </h2>
+
+    {% if modo == 'editar' and imovel %}
+        <p class="muted">A editar: {{ imovel.morada }} (ID {{ imovel.id_imovel }})</p>
+    {% endif %}
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        {% if modo == 'editar' and imovel.imagem_principal %}
+            <div class="card" style="background: #f3f4f6;">
+                <p><strong>Imagem atual:</strong></p>
+                <img src="{{ imovel.imagem_principal.url }}" alt="Imagem do imóvel" style="max-width: 100%; height: auto; border-radius: 8px;" />
+            </div>
+        {% endif %}
+        <button class="btn" type="submit">
+            {% if modo == 'editar' %}Guardar alterações{% else %}Criar anúncio{% endif %}
+        </button>
+        <a class="btn" style="background:#6b7280;" href="{% url 'imovel:painel_anunciante' %}">Cancelar</a>
+    </form>
+</div>
+{% endblock %}

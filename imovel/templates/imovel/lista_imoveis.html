@@ -1,0 +1,208 @@
+{% extends 'imovel/base.html' %}
+
+{% block title %}Lista de Imóveis{% endblock %}
+
+{% block content %}
+<h2>Imóveis</h2>
+
+<style>
+    .filtros-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+        gap: 10px;
+        margin-bottom: 10px;
+    }
+    .filtro-campo label {
+        display: block;
+        font-size: 13px;
+        margin-bottom: 4px;
+        color: #374151;
+    }
+    .filtro-campo input,
+    .filtro-campo select {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 8px;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        background: #fff;
+    }
+    .filtro-acoes {
+        display: flex;
+        gap: 8px;
+        margin-top: 8px;
+        flex-wrap: wrap;
+    }
+    .btn-sec {
+        display: inline-block;
+        background: #6b7280;
+        color: #fff;
+        padding: 8px 12px;
+        border-radius: 8px;
+        text-decoration: none;
+    }
+</style>
+
+<div class="card">
+    <h3 style="margin-top: 0;">Filtros de Pesquisa</h3>
+    <form method="get">
+        <div class="filtros-grid">
+            <div class="filtro-campo">
+                <label for="id_distrito">Distrito</label>
+                <select id="id_distrito" name="distrito">
+                    <option value="">Todos</option>
+                    {% for d in distritos %}
+                        <option value="{{ d.id_distrito }}" {% if selected.distrito == d.id_distrito %}selected{% endif %}>{{ d.nome }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="filtro-campo">
+                <label for="id_concelho">Concelho</label>
+                <select id="id_concelho" name="concelho">
+                    <option value="">Todos</option>
+                    {% for c in concelhos %}
+                        <option value="{{ c.id_concelho }}" data-distrito="{{ c.id_distrito_id }}" {% if selected.concelho == c.id_concelho %}selected{% endif %}>{{ c.nome }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="filtro-campo">
+                <label for="id_freguesia">Freguesia</label>
+                <select id="id_freguesia" name="freguesia">
+                    <option value="">Todas</option>
+                    {% for f in freguesias %}
+                        <option value="{{ f.id_freguesia }}" data-concelho="{{ f.id_concelho_id }}" {% if selected.freguesia == f.id_freguesia|stringformat:"s" %}selected{% endif %}>{{ f.nome }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="filtro-campo">
+                <label for="id_tipologia">Tipologia (T)</label>
+                <select id="id_tipologia" name="tipologia">
+                    <option value="">Todas</option>
+                    {% for n in range_0_9 %}
+                        <option value="{{ n }}" {% if selected.tipologia == n|stringformat:"s" %}selected{% endif %}>T{{ n }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="filtro-campo">
+                <label for="id_numero_wc">Nº WC</label>
+                <select id="id_numero_wc" name="numero_wc">
+                    <option value="">Todos</option>
+                    {% for n in range_0_9 %}
+                        <option value="{{ n }}" {% if selected.numero_wc == n|stringformat:"s" %}selected{% endif %}>{{ n }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="filtro-campo">
+                <label for="id_preco_min">Preço mínimo (€)</label>
+                <input id="id_preco_min" type="number" step="0.01" min="0" name="preco_min" value="{{ selected.preco_min }}">
+            </div>
+
+            <div class="filtro-campo">
+                <label for="id_preco_max">Preço máximo (€)</label>
+                <input id="id_preco_max" type="number" step="0.01" min="0" name="preco_max" value="{{ selected.preco_max }}">
+            </div>
+
+            <div class="filtro-campo">
+                <label for="id_area_min">Área mínima (m²)</label>
+                <input id="id_area_min" type="number" step="0.01" min="0" name="area_min" value="{{ selected.area_min }}">
+            </div>
+
+            <div class="filtro-campo">
+                <label for="id_area_max">Área máxima (m²)</label>
+                <input id="id_area_max" type="number" step="0.01" min="0" name="area_max" value="{{ selected.area_max }}">
+            </div>
+        </div>
+
+        <div class="filtro-acoes">
+            <button class="btn" type="submit">Aplicar filtros</button>
+            <a class="btn-sec" href="{% url 'imovel:lista_imoveis' %}">Limpar filtros</a>
+        </div>
+    </form>
+</div>
+
+<p class="muted">Resultados encontrados: <strong>{{ imoveis|length }}</strong></p>
+
+{% if imoveis %}
+    {% for item in imoveis %}
+        <div class="card">
+            {% if item.imagem_principal %}
+                <img src="{{ item.imagem_principal.url }}" alt="Imagem do imóvel" style="width:100%; max-height:220px; object-fit:cover; border-radius:10px; margin-bottom:12px;" />
+            {% endif %}
+            <h3 style="margin-top:0;">{{ item.morada }}</h3>
+            <p class="price">€{{ item.preco }}</p>
+            <p>Quartos: {{ item.numero_quartos }} | WC: {{ item.numero_wc }} | Área: {{ item.area }} m²</p>
+            <p class="muted">{{ item.id_freguesia.nome }}, {{ item.id_freguesia.id_concelho.nome }}, {{ item.id_freguesia.id_concelho.id_distrito.nome }}</p>
+            <p class="muted">Anunciado em: {{ item.data_anuncio|date:'d/m/Y H:i' }}</p>
+            <a class="btn" href="{% url 'imovel:detalhe_imovel' item.id_imovel %}">Ver detalhe</a>
+        </div>
+    {% endfor %}
+{% else %}
+    <div class="card">
+        <p>Ainda não existem imóveis registados.</p>
+    </div>
+{% endif %}
+
+<script>
+    const distritoSelect = document.getElementById('id_distrito');
+    const concelhoSelect = document.getElementById('id_concelho');
+    const freguesiaSelect = document.getElementById('id_freguesia');
+
+    function filtrarConcelhos() {
+        const distrito = distritoSelect.value;
+        const concelhoAtual = concelhoSelect.value;
+        let concelhoValido = false;
+
+        Array.from(concelhoSelect.options).forEach((opt, index) => {
+            if (index === 0) {
+                opt.hidden = false;
+                return;
+            }
+            const pertence = !distrito || opt.dataset.distrito === distrito;
+            opt.hidden = !pertence;
+            if (opt.value === concelhoAtual && pertence) {
+                concelhoValido = true;
+            }
+        });
+
+        if (concelhoAtual && !concelhoValido) {
+            concelhoSelect.value = '';
+        }
+    }
+
+    function filtrarFreguesias() {
+        const concelho = concelhoSelect.value;
+        const freguesiaAtual = freguesiaSelect.value;
+        let freguesiaValida = false;
+
+        Array.from(freguesiaSelect.options).forEach((opt, index) => {
+            if (index === 0) {
+                opt.hidden = false;
+                return;
+            }
+            const pertence = !concelho || opt.dataset.concelho === concelho;
+            opt.hidden = !pertence;
+            if (opt.value === freguesiaAtual && pertence) {
+                freguesiaValida = true;
+            }
+        });
+
+        if (freguesiaAtual && !freguesiaValida) {
+            freguesiaSelect.value = '';
+        }
+    }
+
+    distritoSelect.addEventListener('change', () => {
+        filtrarConcelhos();
+        filtrarFreguesias();
+    });
+    concelhoSelect.addEventListener('change', filtrarFreguesias);
+
+    filtrarConcelhos();
+    filtrarFreguesias();
+</script>
+{% endblock %}

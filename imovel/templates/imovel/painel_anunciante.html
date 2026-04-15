@@ -1,0 +1,31 @@
+{% extends 'imovel/base.html' %}
+
+{% block title %}Painel de Anunciante{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2 style="margin-top:0;">Painel de anunciante</h2>
+    <p><strong>Conta:</strong> {{ user.username }} ({{ perfil.get_tipo_utilizador_display }})</p>
+    <p><strong>Total de imóveis associados:</strong> {{ total_imoveis }}</p>
+    <p class="muted">Os imóveis são associados através do email da conta com o email do anunciante na base de dados.</p>
+    <a class="btn" href="{% url 'imovel:criar_anuncio' %}">Criar novo anúncio</a>
+</div>
+
+<div class="card">
+    <h3 style="margin-top:0;">Os seus imóveis</h3>
+    {% if imoveis %}
+        <ul style="padding-left: 18px;">
+            {% for item in imoveis %}
+                <li style="margin-bottom: 8px;">
+                    <a href="{% url 'imovel:detalhe_imovel' item.id_imovel %}">{{ item.morada }}</a>
+                    — €{{ item.preco }} — {{ item.id_freguesia.nome }}
+                    <a class="btn" style="margin-left: 8px; padding: 4px 8px;" href="{% url 'imovel:editar_anuncio' item.id_imovel %}">Editar</a>
+                    <a class="btn" style="margin-left: 8px; padding: 4px 8px; background:#dc2626;" href="{% url 'imovel:apagar_anuncio' item.id_imovel %}">Apagar</a>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p class="muted">Ainda não há imóveis associados ao seu email.</p>
+    {% endif %}
+</div>
+{% endblock %}

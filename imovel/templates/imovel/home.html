@@ -1,0 +1,12 @@
+{% extends 'imovel/base.html' %}
+
+{% block title %}Início{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>Bem-vindo ao portal imobiliário</h2>
+    <p class="muted">Este projeto está ligado à sua base de dados MySQL e já consegue mostrar imóveis reais.</p>
+    <p>Total de imóveis na base de dados: <strong>{{ total_imoveis }}</strong></p>
+    <a class="btn" href="{% url 'imovel:lista_imoveis' %}">Ver imóveis</a>
+</div>
+{% endblock %}

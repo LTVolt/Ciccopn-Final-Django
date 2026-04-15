@@ -1,0 +1,29 @@
+{% extends 'imovel/base.html' %}
+
+{% block title %}Detalhe do Imóvel{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2 style="margin-top:0;">{{ imovel.morada }}</h2>
+    <p class="price">€{{ imovel.preco }}</p>
+
+    {% if imovel.imagem_principal %}
+        <img src="{{ imovel.imagem_principal.url }}" alt="Imagem do imóvel" style="width:100%; max-height:420px; object-fit:cover; border-radius:12px; margin-bottom:16px;" />
+    {% endif %}
+
+    <p><strong>Descrição:</strong><br>{{ imovel.descricao|default:'Sem descrição.' }}</p>
+
+    <ul>
+        <li><strong>Quartos:</strong> {{ imovel.numero_quartos }}</li>
+        <li><strong>WC:</strong> {{ imovel.numero_wc }}</li>
+        <li><strong>Área:</strong> {{ imovel.area }} m²</li>
+        <li><strong>Data de construção:</strong> {{ imovel.data_construcao|date:'d/m/Y'|default:'N/A' }}</li>
+        <li><strong>Freguesia:</strong> {{ imovel.id_freguesia.nome }}</li>
+        <li><strong>Concelho:</strong> {{ imovel.id_freguesia.id_concelho.nome }}</li>
+        <li><strong>Distrito:</strong> {{ imovel.id_freguesia.id_concelho.id_distrito.nome }}</li>
+        <li><strong>Contacto:</strong> {{ imovel.id_anunciante.email }} | {{ imovel.id_anunciante.telefone }}</li>
+    </ul>
+
+    <a class="btn" href="{% url 'imovel:lista_imoveis' %}">Voltar à lista</a>
+</div>
+{% endblock %}

@@ -1,0 +1,31 @@
+{% extends 'imovel/base.html' %}
+
+{% block title %}Confirmar eliminação{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 720px;">
+    <h2 style="margin-top:0;">Eliminar anúncio</h2>
+    <p>Tem a certeza de que pretende eliminar o anúncio abaixo?</p>
+    <p><strong>{{ imovel.morada }}</strong> — €{{ imovel.preco }}</p>
+    <p class="muted">Para confirmar, escreva a palavra <strong>apagar</strong> no campo abaixo.</p>
+
+    <form method="post" id="confirm-delete-form" onsubmit="return validarEliminacao();">
+        {% csrf_token %}
+        <label for="confirmacao"><strong>Escreva &ldquo;apagar&rdquo;:</strong></label><br>
+        <input id="confirmacao" name="confirmacao" type="text" style="width:100%; padding:8px; margin:8px 0;" autocomplete="off" />
+        <button class="btn" type="submit" style="background:#dc2626;">Eliminar definitivamente</button>
+        <a class="btn" style="background:#6b7280;" href="{% url 'imovel:painel_anunciante' %}">Cancelar</a>
+    </form>
+</div>
+
+<script>
+function validarEliminacao() {
+    const valor = document.getElementById('confirmacao').value.trim().toLowerCase();
+    if (valor !== 'apagar') {
+        alert('Escreva a palavra "apagar" para confirmar a eliminação.');
+        return false;
+    }
+    return confirm('Tem a certeza? Esta ação não pode ser desfeita.');
+}
+</script>
+{% endblock %}
