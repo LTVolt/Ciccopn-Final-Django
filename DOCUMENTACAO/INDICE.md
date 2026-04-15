@@ -58,6 +58,8 @@ Bem-vindo! Aqui encontra toda a documentação sobre o desenvolvimento do seu si
 - **[09_GESTAO_ANUNCIOS_ANUNCIANTE.md](09_GESTAO_ANUNCIOS_ANUNCIANTE.md)** - Criação e edição de anúncios por anunciante
 - **[10_REGISTO_ANUNCIANTES.md](10_REGISTO_ANUNCIANTES.md)** - Registo aprimorado para anunciantes
 - **[11_ELIMINACAO_E_UPLOAD_IMAGENS.md](11_ELIMINACAO_E_UPLOAD_IMAGENS.md)** - Eliminação com confirmação e upload de imagem
+- **[12_GALERIA_MULTIFOTOS.md](12_GALERIA_MULTIFOTOS.md)** - Galeria multi-fotos com setas na listagem
+- **[13_ESTILO_FORM_ANUNCIO_E_LOCALIZACAO.md](13_ESTILO_FORM_ANUNCIO_E_LOCALIZACAO.md)** - Estilo moderno e dropdowns dependentes no formulário
 
 ---
 

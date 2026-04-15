@@ -125,14 +125,6 @@ class ImovelForm(forms.ModelForm):
             'numero_quartos': forms.NumberInput(attrs={'min': '0', 'max': '9'}),
             'numero_wc': forms.NumberInput(attrs={'min': '0', 'max': '9'}),
         }
-        widgets = {
-            'descricao': forms.Textarea(attrs={'rows': 4}),
-            'data_construcao': forms.DateInput(attrs={'type': 'date'}),
-            'preco': forms.NumberInput(attrs={'step': '0.01', 'min': '0'}),
-            'area': forms.NumberInput(attrs={'step': '0.01', 'min': '0'}),
-            'numero_quartos': forms.NumberInput(attrs={'min': '0', 'max': '9'}),
-            'numero_wc': forms.NumberInput(attrs={'min': '0', 'max': '9'}),
-        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

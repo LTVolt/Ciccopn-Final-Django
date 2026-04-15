@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.utils.html import format_html
-from .models import Rede, Agencia, Consultor, Proprietario, Distrito, Concelho, Freguesia, Anunciante, Imovel, PerfilUtilizador
+from .models import Rede, Agencia, Consultor, Proprietario, Distrito, Concelho, Freguesia, Anunciante, Imovel, ImovelImagem, PerfilUtilizador
 
 # ============================================
 # CONFIGURAÇÃO DO PAINEL ADMIN
@@ -91,12 +91,28 @@ class ImovelAdmin(admin.ModelAdmin):
 		}),
 	)
 	readonly_fields = ('data_anuncio', 'imagem_preview')
+	inlines = []
 
 	def imagem_preview(self, obj):
 		if obj.imagem_principal:
 			return format_html('<img src="{}" style="max-width: 180px; height:auto;" />', obj.imagem_principal.url)
 		return '-'
 	imagem_preview.short_description = 'Pré-visualização'
+
+
+class ImovelImagemInline(admin.TabularInline):
+	model = ImovelImagem
+	extra = 1
+	fields = ('imagem', 'ordem', 'preview')
+	readonly_fields = ('preview',)
+
+	def preview(self, obj):
+		if obj and obj.imagem:
+			return format_html('<img src="{}" style="max-width: 120px; height:auto;" />', obj.imagem.url)
+		return '-'
+
+
+ImovelAdmin.inlines = [ImovelImagemInline]
 
 
 @admin.register(PerfilUtilizador)

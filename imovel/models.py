@@ -295,6 +295,37 @@ class Imovel(models.Model):
 		except:
 			return "Localização desconhecida"
 
+	@property
+	def total_imagens_galeria(self):
+		return self.imagens.count()
+
+	@property
+	def primeira_imagem_galeria(self):
+		return self.imagens.order_by('ordem', 'id_imagem').first()
+
+
+class ImovelImagem(models.Model):
+	"""Galeria de imagens associada a um imóvel (até 40 por anúncio)."""
+	id_imagem = models.AutoField(primary_key=True)
+	id_imovel = models.ForeignKey(
+		Imovel,
+		on_delete=models.CASCADE,
+		related_name='imagens',
+		db_column='id_imovel',
+	)
+	imagem = models.ImageField(upload_to='imoveis/galeria/')
+	ordem = models.PositiveSmallIntegerField(default=0)
+	criada_em = models.DateTimeField(auto_now_add=True)
+
+	class Meta:
+		db_table = 'imovel_imagem'
+		verbose_name = 'Imagem do Imóvel'
+		verbose_name_plural = 'Imagens do Imóvel'
+		ordering = ['ordem', 'id_imagem']
+
+	def __str__(self):
+		return f"Imagem {self.id_imagem} - Imóvel {self.id_imovel_id}"
+
 
 # ============================================
 # MODELO 10: PERFIL DE UTILIZADOR

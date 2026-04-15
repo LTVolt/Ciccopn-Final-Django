@@ -41,6 +41,90 @@
         border-radius: 8px;
         text-decoration: none;
     }
+    .galeria-card {
+        position: relative;
+        width: 200px;
+        height: 200px;
+        flex: 0 0 200px;
+    }
+    .galeria-card img {
+        width: 200px;
+        height: 200px;
+        object-fit: cover;
+        border-radius: 10px;
+        display: none;
+    }
+    .galeria-card img.ativa {
+        display: block;
+    }
+    .seta-galeria {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        background: rgba(17, 24, 39, 0.65);
+        color: #fff;
+        border: none;
+        width: 24px;
+        height: 24px;
+        border-radius: 999px;
+        cursor: pointer;
+        font-size: 14px;
+        line-height: 1;
+        padding: 0;
+    }
+    .seta-esquerda { left: 4px; }
+    .seta-direita { right: 4px; }
+    .contador-galeria {
+        position: absolute;
+        bottom: 4px;
+        right: 4px;
+        background: rgba(17, 24, 39, 0.75);
+        color: #fff;
+        padding: 1px 6px;
+        border-radius: 999px;
+        font-size: 10px;
+    }
+    .imovel-linha {
+        display: flex;
+        gap: 14px;
+        align-items: flex-start;
+    }
+    .imovel-info {
+        flex: 1;
+        min-width: 0;
+    }
+    .acoes-imovel {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 8px;
+    }
+    .contacto-box {
+        display: none;
+        margin-top: 8px;
+        padding: 8px 10px;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        background: #f9fafb;
+        font-size: 14px;
+    }
+    .contacto-box.ativo {
+        display: block;
+    }
+    .btn-contacto {
+        background: #0ea5a4;
+    }
+    @media (max-width: 640px) {
+        .imovel-linha {
+            flex-direction: column;
+            gap: 10px;
+        }
+        .galeria-card,
+        .galeria-card img {
+            width: 100%;
+            height: 180px;
+        }
+    }
 </style>
 
 <div class="card">
@@ -130,15 +214,47 @@
 {% if imoveis %}
     {% for item in imoveis %}
         <div class="card">
-            {% if item.imagem_principal %}
-                <img src="{{ item.imagem_principal.url }}" alt="Imagem do imóvel" style="width:100%; max-height:220px; object-fit:cover; border-radius:10px; margin-bottom:12px;" />
-            {% endif %}
-            <h3 style="margin-top:0;">{{ item.morada }}</h3>
-            <p class="price">€{{ item.preco }}</p>
-            <p>Quartos: {{ item.numero_quartos }} | WC: {{ item.numero_wc }} | Área: {{ item.area }} m²</p>
-            <p class="muted">{{ item.id_freguesia.nome }}, {{ item.id_freguesia.id_concelho.nome }}, {{ item.id_freguesia.id_concelho.id_distrito.nome }}</p>
-            <p class="muted">Anunciado em: {{ item.data_anuncio|date:'d/m/Y H:i' }}</p>
-            <a class="btn" href="{% url 'imovel:detalhe_imovel' item.id_imovel %}">Ver detalhe</a>
+            <div class="imovel-linha">
+                {% if item.imagens.all %}
+                    <div class="galeria-card" data-galeria>
+                        {% for foto in item.imagens.all %}
+                            <img src="{{ foto.imagem.url }}" alt="Foto {{ forloop.counter }} do imóvel" class="foto-galeria {% if forloop.first %}ativa{% endif %}" />
+                        {% endfor %}
+                        {% if item.imagens.all|length > 1 %}
+                            <button type="button" class="seta-galeria seta-esquerda" data-prev aria-label="Foto anterior">&#10094;</button>
+                            <button type="button" class="seta-galeria seta-direita" data-next aria-label="Foto seguinte">&#10095;</button>
+                        {% endif %}
+                        <span class="contador-galeria" data-contador>1/{{ item.imagens.all|length }}</span>
+                    </div>
+                {% elif item.imagem_principal %}
+                    <div class="galeria-card" data-galeria>
+                        <img src="{{ item.imagem_principal.url }}" alt="Imagem do imóvel" class="foto-galeria ativa" />
+                        <span class="contador-galeria" data-contador>1/1</span>
+                    </div>
+                {% else %}
+                    <div class="galeria-card">
+                        <div style="width:100%; height:100%; border-radius:10px; background:#e5e7eb; display:flex; align-items:center; justify-content:center; color:#6b7280; font-size:12px;">Sem foto</div>
+                    </div>
+                {% endif %}
+
+                <div class="imovel-info">
+                    <h3 style="margin-top:0;">{{ item.morada }}</h3>
+                    <p class="price">€{{ item.preco }}</p>
+                    <p>Quartos: {{ item.numero_quartos }} | WC: {{ item.numero_wc }} | Área: {{ item.area }} m²</p>
+                    <p class="muted">{{ item.id_freguesia.nome }}, {{ item.id_freguesia.id_concelho.nome }}, {{ item.id_freguesia.id_concelho.id_distrito.nome }}</p>
+                    <p class="muted">Anunciado em: {{ item.data_anuncio|date:'d/m/Y H:i' }}</p>
+
+                    <div class="acoes-imovel">
+                        <a class="btn" href="{% url 'imovel:detalhe_imovel' item.id_imovel %}">Ver detalhe</a>
+                        <button type="button" class="btn btn-contacto" data-contact-btn>Mostrar contacto</button>
+                    </div>
+
+                    <div class="contacto-box" data-contact-box>
+                        <strong>Email:</strong> {{ item.id_anunciante.email }}<br>
+                        <strong>Telefone:</strong> {{ item.id_anunciante.telefone }}
+                    </div>
+                </div>
+            </div>
         </div>
     {% endfor %}
 {% else %}
@@ -202,7 +318,58 @@
     });
     concelhoSelect.addEventListener('change', filtrarFreguesias);
 
+    function inicializarGalerias() {
+        const galerias = document.querySelectorAll('[data-galeria]');
+        galerias.forEach((galeria) => {
+            const imagens = galeria.querySelectorAll('.foto-galeria');
+            if (!imagens.length) {
+                return;
+            }
+
+            let indiceAtual = 0;
+            const contador = galeria.querySelector('[data-contador]');
+            const btnPrev = galeria.querySelector('[data-prev]');
+            const btnNext = galeria.querySelector('[data-next]');
+
+            const mostrar = (novoIndice) => {
+                imagens[indiceAtual].classList.remove('ativa');
+                indiceAtual = (novoIndice + imagens.length) % imagens.length;
+                imagens[indiceAtual].classList.add('ativa');
+                if (contador) {
+                    contador.textContent = `${indiceAtual + 1}/${imagens.length}`;
+                }
+            };
+
+            if (btnPrev) {
+                btnPrev.addEventListener('click', () => mostrar(indiceAtual - 1));
+            }
+            if (btnNext) {
+                btnNext.addEventListener('click', () => mostrar(indiceAtual + 1));
+            }
+        });
+    }
+
+    function inicializarContactos() {
+        const botoes = document.querySelectorAll('[data-contact-btn]');
+        botoes.forEach((botao) => {
+            botao.addEventListener('click', () => {
+                const card = botao.closest('.imovel-info');
+                if (!card) {
+                    return;
+                }
+                const box = card.querySelector('[data-contact-box]');
+                if (!box) {
+                    return;
+                }
+                const ativo = box.classList.toggle('ativo');
+                botao.textContent = ativo ? 'Ocultar contacto' : 'Mostrar contacto';
+            });
+        });
+    }
+
     filtrarConcelhos();
     filtrarFreguesias();
+    inicializarGalerias();
+    inicializarContactos();
 </script>
 {% endblock %}

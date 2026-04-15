@@ -118,3 +118,23 @@ Implementação concluída: eliminação de anúncios com confirmação e upload
 - [x] Configuração de MEDIA_URL e MEDIA_ROOT
 - [x] Servir imagens em desenvolvimento com Django
 - [x] Admin atualizado para mostrar imagem
+
+---
+
+## Fase 14: Galeria Multi-fotos (✅ COMPLETO)
+- [x] Modelo de galeria `ImovelImagem` criado
+- [x] Upload múltiplo de fotos por anúncio
+- [x] Limite máximo de 40 fotos por anúncio
+- [x] Galeria visível na pesquisa de imóveis
+- [x] Navegação por setas (esquerda/direita) em cada anúncio da lista
+- [x] Migração aplicada e validações concluídas
+
+---
+
+## Fase 15: Estilo do Formulário e Localização (✅ COMPLETO)
+- [x] Página de criação/edição com layout moderno
+- [x] Campos de distrito e concelho adicionados antes da freguesia
+- [x] Concelhos filtrados por distrito selecionado
+- [x] Freguesias filtradas por concelho selecionado
+- [x] Dropdown de freguesia em formato compacto com expansão ao foco
+- [x] Seleções preservadas em criação/edição e em erros de validação

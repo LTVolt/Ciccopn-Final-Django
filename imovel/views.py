@@ -6,9 +6,13 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
 from django.shortcuts import get_object_or_404, render
 from django.shortcuts import redirect
+from django.db.models import Prefetch
 
-from .models import Anunciante, Concelho, Distrito, Freguesia, Imovel, PerfilUtilizador
+from .models import Anunciante, Concelho, Distrito, Freguesia, Imovel, ImovelImagem, PerfilUtilizador
 from .forms import ImovelForm, RegistoForm
+
+
+MAX_IMAGENS_POR_ANUNCIO = 40
 
 
 def _parse_int(value, min_value=None, max_value=None):
@@ -43,6 +47,62 @@ def _get_anunciante_by_user(user):
 	return Anunciante.objects.filter(email__iexact=user.email).first()
 
 
+def _get_localizacao_context(post_data=None, imovel=None):
+	distritos = Distrito.objects.all().order_by('nome')
+	concelhos = Concelho.objects.select_related('id_distrito').all().order_by('nome')
+	freguesias = Freguesia.objects.select_related('id_concelho__id_distrito').all().order_by('nome')
+
+	selected_freguesia = ''
+	selected_concelho = ''
+	selected_distrito = ''
+
+	if post_data is not None:
+		selected_distrito = (post_data.get('distrito') or '').strip()
+		selected_concelho = (post_data.get('concelho') or '').strip()
+		selected_freguesia = (post_data.get('id_freguesia') or '').strip()
+	elif imovel and imovel.id_freguesia_id:
+		selected_freguesia = str(imovel.id_freguesia_id)
+		selected_concelho = str(imovel.id_freguesia.id_concelho_id)
+		selected_distrito = str(imovel.id_freguesia.id_concelho.id_distrito_id)
+
+	if selected_freguesia and (not selected_concelho or not selected_distrito):
+		freguesia = Freguesia.objects.select_related('id_concelho__id_distrito').filter(pk=selected_freguesia).first()
+		if freguesia:
+			if not selected_concelho:
+				selected_concelho = str(freguesia.id_concelho_id)
+			if not selected_distrito:
+				selected_distrito = str(freguesia.id_concelho.id_distrito_id)
+
+	return {
+		'distritos': distritos,
+		'concelhos': concelhos,
+		'freguesias': freguesias,
+		'selected_localizacao': {
+			'distrito': selected_distrito,
+			'concelho': selected_concelho,
+			'freguesia': selected_freguesia,
+		},
+	}
+
+
+def _guardar_imagens_galeria(imovel, imagens_upload):
+	if not imagens_upload:
+		return
+
+	atual = imovel.imagens.count()
+	espaco_disponivel = max(0, MAX_IMAGENS_POR_ANUNCIO - atual)
+	if espaco_disponivel <= 0:
+		return
+
+	base_ordem = imovel.imagens.count()
+	for idx, ficheiro in enumerate(imagens_upload[:espaco_disponivel], start=1):
+		ImovelImagem.objects.create(
+			id_imovel=imovel,
+			imagem=ficheiro,
+			ordem=base_ordem + idx,
+		)
+
+
 def home(request):
 	total_imoveis = Imovel.objects.count()
 	return render(request, 'imovel/home.html', {'total_imoveis': total_imoveis})
@@ -71,6 +131,7 @@ def lista_imoveis(request):
 			'id_freguesia__id_concelho__id_distrito',
 			'id_anunciante',
 		)
+		.prefetch_related(Prefetch('imagens', queryset=ImovelImagem.objects.order_by('ordem', 'id_imagem')))
 		.all()
 	)
 
@@ -126,7 +187,7 @@ def detalhe_imovel(request, id_imovel):
 		Imovel.objects.select_related(
 			'id_freguesia__id_concelho__id_distrito',
 			'id_anunciante',
-		),
+		).prefetch_related('imagens'),
 		pk=id_imovel,
 	)
 	return render(request, 'imovel/detalhe_imovel.html', {'imovel': imovel})
@@ -228,18 +289,50 @@ def criar_anuncio(request):
 	if request.method == 'POST':
 		form = ImovelForm(request.POST, request.FILES)
 		if form.is_valid():
+			imagens_upload = request.FILES.getlist('galeria_imagens')
+			if len(imagens_upload) > MAX_IMAGENS_POR_ANUNCIO:
+				loc_ctx = _get_localizacao_context(post_data=request.POST)
+				messages.error(
+					request,
+					f'Pode enviar no maximo {MAX_IMAGENS_POR_ANUNCIO} imagens por anuncio.',
+				)
+				return render(
+					request,
+					'imovel/form_anuncio.html',
+					{
+						'form': form,
+						'modo': 'criar',
+						'max_imagens': MAX_IMAGENS_POR_ANUNCIO,
+						'imagens_atuais': 0,
+						**loc_ctx,
+					},
+				)
+
 			imovel = form.save(commit=False)
 			if request.user.is_superuser and not anunciante:
 				messages.error(request, 'Superutilizador sem email correspondente a anunciante. Defina um email com registo em anunciante.')
 				return redirect('imovel:painel_anunciante')
 			imovel.id_anunciante = anunciante
 			imovel.save()
+			_guardar_imagens_galeria(imovel, imagens_upload)
 			messages.success(request, 'Anúncio criado com sucesso.')
 			return redirect('imovel:painel_anunciante')
 	else:
 		form = ImovelForm()
 
-	return render(request, 'imovel/form_anuncio.html', {'form': form, 'modo': 'criar'})
+	loc_ctx = _get_localizacao_context(post_data=request.POST if request.method == 'POST' else None)
+
+	return render(
+		request,
+		'imovel/form_anuncio.html',
+		{
+			'form': form,
+			'modo': 'criar',
+			'max_imagens': MAX_IMAGENS_POR_ANUNCIO,
+			'imagens_atuais': 0,
+			**loc_ctx,
+		},
+	)
 
 
 @login_required
@@ -249,7 +342,7 @@ def editar_anuncio(request, id_imovel):
 		messages.error(request, 'Apenas contas de anunciante podem editar anúncios.')
 		return redirect('imovel:perfil')
 
-	queryset = Imovel.objects.select_related('id_anunciante')
+	queryset = Imovel.objects.select_related('id_anunciante').prefetch_related('imagens')
 	if request.user.is_superuser:
 		imovel = get_object_or_404(queryset, pk=id_imovel)
 	else:
@@ -258,16 +351,40 @@ def editar_anuncio(request, id_imovel):
 	if request.method == 'POST':
 		form = ImovelForm(request.POST, request.FILES, instance=imovel)
 		if form.is_valid():
+			imagens_upload = request.FILES.getlist('galeria_imagens')
+			imagens_atuais = imovel.imagens.count()
+			if imagens_atuais + len(imagens_upload) > MAX_IMAGENS_POR_ANUNCIO:
+				loc_ctx = _get_localizacao_context(post_data=request.POST, imovel=imovel)
+				messages.error(
+					request,
+					f'Este anúncio já tem {imagens_atuais} imagens. Só pode adicionar mais {max(0, MAX_IMAGENS_POR_ANUNCIO - imagens_atuais)}.',
+				)
+				context = {
+					'form': form,
+					'imovel': imovel,
+					'modo': 'editar',
+					'max_imagens': MAX_IMAGENS_POR_ANUNCIO,
+					'imagens_atuais': imagens_atuais,
+					**loc_ctx,
+				}
+				return render(request, 'imovel/form_anuncio.html', context)
+
 			form.save()
+			_guardar_imagens_galeria(imovel, imagens_upload)
 			messages.success(request, 'Anúncio atualizado com sucesso.')
 			return redirect('imovel:painel_anunciante')
 	else:
 		form = ImovelForm(instance=imovel)
 
+	loc_ctx = _get_localizacao_context(post_data=request.POST if request.method == 'POST' else None, imovel=imovel)
+
 	context = {
 		'form': form,
 		'imovel': imovel,
 		'modo': 'editar',
+		'max_imagens': MAX_IMAGENS_POR_ANUNCIO,
+		'imagens_atuais': imovel.imagens.count(),
+		**loc_ctx,
 	}
 	return render(request, 'imovel/form_anuncio.html', context)
 

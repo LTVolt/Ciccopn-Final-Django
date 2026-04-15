@@ -3,32 +3,335 @@
 {% block title %}{% if modo == 'editar' %}Editar anúncio{% else %}Novo anúncio{% endif %}{% endblock %}
 
 {% block content %}
-<div class="card" style="max-width: 720px;">
-    <h2 style="margin-top:0;">
-        {% if modo == 'editar' %}
-            Editar anúncio
+<style>
+    .anuncio-wrapper {
+        max-width: 920px;
+        margin: 0 auto;
+    }
+    .anuncio-hero {
+        border-radius: 14px;
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 65%, #334155 100%);
+        color: #fff;
+        padding: 20px;
+        margin-bottom: 14px;
+        box-shadow: 0 6px 22px rgba(15, 23, 42, 0.3);
+    }
+    .anuncio-hero h2 {
+        margin: 0;
+        font-size: 1.45rem;
+    }
+    .anuncio-hero p {
+        margin: 8px 0 0;
+        color: #cbd5e1;
+    }
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+    }
+    .form-grid .full {
+        grid-column: 1 / -1;
+    }
+    .campo label {
+        display: block;
+        font-size: 13px;
+        font-weight: 700;
+        margin-bottom: 4px;
+        color: #334155;
+    }
+    .campo input,
+    .campo textarea,
+    .campo select {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 9px 10px;
+        border: 1px solid #cbd5e1;
+        border-radius: 10px;
+        background: #fff;
+        color: #0f172a;
+    }
+    .campo input:focus,
+    .campo textarea:focus,
+    .campo select:focus {
+        outline: none;
+        border-color: #2563eb;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+    .localizacao-box {
+        border: 1px solid #e2e8f0;
+        background: #f8fafc;
+        border-radius: 12px;
+        padding: 12px;
+    }
+    .freguesia-curta {
+        width: 280px;
+        max-width: 100%;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        overflow: hidden;
+    }
+    .freguesia-curta:focus {
+        width: 100%;
+    }
+    .errorlist {
+        margin: 6px 0 0;
+        padding-left: 18px;
+        color: #b91c1c;
+        font-size: 13px;
+    }
+    .galeria-box {
+        border: 1px solid #dbeafe;
+        background: #eff6ff;
+        border-radius: 12px;
+        padding: 12px;
+    }
+    .acoes-form {
+        display: flex;
+        gap: 8px;
+        margin-top: 14px;
+        flex-wrap: wrap;
+    }
+    .thumb-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 8px;
+    }
+    .thumb-grid img {
+        width: 100%;
+        height: 100px;
+        object-fit: cover;
+        border-radius: 8px;
+    }
+    @media (max-width: 760px) {
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="anuncio-wrapper">
+    <div class="anuncio-hero">
+        <h2>{% if modo == 'editar' %}Editar anúncio{% else %}Criar novo anúncio{% endif %}</h2>
+        {% if modo == 'editar' and imovel %}
+            <p>A editar: {{ imovel.morada }} (ID {{ imovel.id_imovel }})</p>
         {% else %}
-            Criar novo anúncio
+            <p>Preencha os dados essenciais e organize as fotos para destacar o imóvel.</p>
         {% endif %}
-    </h2>
+    </div>
 
-    {% if modo == 'editar' and imovel %}
-        <p class="muted">A editar: {{ imovel.morada }} (ID {{ imovel.id_imovel }})</p>
-    {% endif %}
+    <div class="card">
+        <form method="post" enctype="multipart/form-data" novalidate>
+            {% csrf_token %}
 
-    <form method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-        {{ form.as_p }}
-        {% if modo == 'editar' and imovel.imagem_principal %}
-            <div class="card" style="background: #f3f4f6;">
-                <p><strong>Imagem atual:</strong></p>
-                <img src="{{ imovel.imagem_principal.url }}" alt="Imagem do imóvel" style="max-width: 100%; height: auto; border-radius: 8px;" />
+            {% if form.non_field_errors %}
+                <div class="errorlist">{{ form.non_field_errors }}</div>
+            {% endif %}
+
+            <div class="form-grid">
+                <div class="campo full">
+                    <label for="{{ form.morada.id_for_label }}">{{ form.morada.label }}</label>
+                    {{ form.morada }}
+                    {{ form.morada.errors }}
+                </div>
+
+                <div class="campo full">
+                    <label for="{{ form.descricao.id_for_label }}">{{ form.descricao.label }}</label>
+                    {{ form.descricao }}
+                    {{ form.descricao.errors }}
+                </div>
+
+                <div class="campo">
+                    <label for="{{ form.preco.id_for_label }}">{{ form.preco.label }}</label>
+                    {{ form.preco }}
+                    {{ form.preco.errors }}
+                </div>
+
+                <div class="campo">
+                    <label for="{{ form.area.id_for_label }}">{{ form.area.label }}</label>
+                    {{ form.area }}
+                    {{ form.area.errors }}
+                </div>
+
+                <div class="campo">
+                    <label for="{{ form.numero_quartos.id_for_label }}">{{ form.numero_quartos.label }}</label>
+                    {{ form.numero_quartos }}
+                    {{ form.numero_quartos.errors }}
+                </div>
+
+                <div class="campo">
+                    <label for="{{ form.numero_wc.id_for_label }}">{{ form.numero_wc.label }}</label>
+                    {{ form.numero_wc }}
+                    {{ form.numero_wc.errors }}
+                </div>
+
+                <div class="campo">
+                    <label for="{{ form.data_construcao.id_for_label }}">{{ form.data_construcao.label }}</label>
+                    {{ form.data_construcao }}
+                    {{ form.data_construcao.errors }}
+                </div>
+
+                <div class="campo">
+                    <label for="{{ form.imagem_principal.id_for_label }}">{{ form.imagem_principal.label }}</label>
+                    {{ form.imagem_principal }}
+                    {{ form.imagem_principal.errors }}
+                </div>
+
+                <div class="campo full localizacao-box">
+                    <label style="margin-bottom:8px;">Localização por dropdowns</label>
+                    <div class="form-grid" style="gap:10px;">
+                        <div class="campo">
+                            <label for="id_distrito_form">Distrito</label>
+                            <select id="id_distrito_form" name="distrito">
+                                <option value="">Selecionar distrito</option>
+                                {% for d in distritos %}
+                                    <option value="{{ d.id_distrito }}" {% if selected_localizacao.distrito == d.id_distrito|stringformat:'s' %}selected{% endif %}>{{ d.nome }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="campo">
+                            <label for="id_concelho_form">Concelho</label>
+                            <select id="id_concelho_form" name="concelho">
+                                <option value="">Selecionar concelho</option>
+                                {% for c in concelhos %}
+                                    <option value="{{ c.id_concelho }}" data-distrito="{{ c.id_distrito_id }}" {% if selected_localizacao.concelho == c.id_concelho|stringformat:'s' %}selected{% endif %}>{{ c.nome }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="campo full">
+                            <label for="id_freguesia_form">{{ form.id_freguesia.label }}</label>
+                            <select id="id_freguesia_form" name="id_freguesia" class="freguesia-curta">
+                                <option value="">Selecionar freguesia</option>
+                                {% for f in freguesias %}
+                                    <option
+                                        value="{{ f.id_freguesia }}"
+                                        data-concelho="{{ f.id_concelho_id }}"
+                                        title="{{ f.nome }}"
+                                        {% if selected_localizacao.freguesia == f.id_freguesia|stringformat:'s' %}selected{% endif %}>
+                                        {{ f.nome }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            {{ form.id_freguesia.errors }}
+                        </div>
+                    </div>
+                </div>
             </div>
-        {% endif %}
-        <button class="btn" type="submit">
-            {% if modo == 'editar' %}Guardar alterações{% else %}Criar anúncio{% endif %}
-        </button>
-        <a class="btn" style="background:#6b7280;" href="{% url 'imovel:painel_anunciante' %}">Cancelar</a>
-    </form>
+
+            <div class="galeria-box" style="margin-top: 12px;">
+                <p style="margin-top:0;"><strong>Galeria de fotos</strong></p>
+                <input id="id_galeria_imagens" name="galeria_imagens" type="file" accept="image/*" multiple style="display:none;" />
+                <button class="btn" type="button" id="btn_escolher_fotos">Upload das fotos da galeria</button>
+                <p id="galeria_info" class="muted" style="margin:8px 0 0 0;">Nenhuma foto selecionada.</p>
+                <p class="muted" style="margin:6px 0 0 0;">As fotos selecionadas ficam associadas ao anúncio quando clicar em {% if modo == 'editar' %}Guardar alterações{% else %}Criar anúncio{% endif %}. Máximo: {{ max_imagens|default:40 }} fotos no total.</p>
+            </div>
+
+            <p class="muted" style="margin-top: 8px;">
+                Galeria: {{ imagens_atuais|default:0 }} de {{ max_imagens|default:40 }} imagens.
+            </p>
+
+            {% if modo == 'editar' and imovel.imagem_principal %}
+                <div class="card" style="background: #f8fafc;">
+                    <p><strong>Imagem principal atual:</strong></p>
+                    <img src="{{ imovel.imagem_principal.url }}" alt="Imagem do imóvel" style="max-width: 100%; height: auto; border-radius: 8px;" />
+                </div>
+            {% endif %}
+
+            {% if modo == 'editar' and imovel.imagens.all %}
+                <div class="card" style="background: #f8fafc;">
+                    <p><strong>Fotos da galeria:</strong></p>
+                    <div class="thumb-grid">
+                        {% for foto in imovel.imagens.all %}
+                            <img src="{{ foto.imagem.url }}" alt="Foto {{ forloop.counter }}" />
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+
+            <div class="acoes-form">
+                <button class="btn" type="submit">
+                    {% if modo == 'editar' %}Guardar alterações{% else %}Criar anúncio{% endif %}
+                </button>
+                <a class="btn" style="background:#64748b;" href="{% url 'imovel:painel_anunciante' %}">Cancelar</a>
+            </div>
+        </form>
+    </div>
 </div>
+
+<script>
+    const btnEscolherFotos = document.getElementById('btn_escolher_fotos');
+    const inputGaleria = document.getElementById('id_galeria_imagens');
+    const infoGaleria = document.getElementById('galeria_info');
+
+    if (btnEscolherFotos && inputGaleria && infoGaleria) {
+        btnEscolherFotos.addEventListener('click', () => inputGaleria.click());
+        inputGaleria.addEventListener('change', () => {
+            const total = inputGaleria.files ? inputGaleria.files.length : 0;
+            if (!total) {
+                infoGaleria.textContent = 'Nenhuma foto selecionada.';
+                return;
+            }
+            const plural = total === 1 ? 'foto selecionada' : 'fotos selecionadas';
+            infoGaleria.textContent = `${total} ${plural} para upload na galeria.`;
+        });
+    }
+
+    const distritoSelect = document.getElementById('id_distrito_form');
+    const concelhoSelect = document.getElementById('id_concelho_form');
+    const freguesiaSelect = document.getElementById('id_freguesia_form');
+
+    function filtrarConcelhos() {
+        const distrito = distritoSelect.value;
+        const atual = concelhoSelect.value;
+        let valido = false;
+
+        Array.from(concelhoSelect.options).forEach((opt, idx) => {
+            if (idx === 0) {
+                opt.hidden = false;
+                return;
+            }
+            const ok = !distrito || opt.dataset.distrito === distrito;
+            opt.hidden = !ok;
+            if (opt.value === atual && ok) {
+                valido = true;
+            }
+        });
+
+        if (atual && !valido) {
+            concelhoSelect.value = '';
+        }
+    }
+
+    function filtrarFreguesias() {
+        const concelho = concelhoSelect.value;
+        const atual = freguesiaSelect.value;
+        let valida = false;
+
+        Array.from(freguesiaSelect.options).forEach((opt, idx) => {
+            if (idx === 0) {
+                opt.hidden = false;
+                return;
+            }
+            const ok = !concelho || opt.dataset.concelho === concelho;
+            opt.hidden = !ok;
+            if (opt.value === atual && ok) {
+                valida = true;
+            }
+        });
+
+        if (atual && !valida) {
+            freguesiaSelect.value = '';
+        }
+    }
+
+    distritoSelect.addEventListener('change', () => {
+        filtrarConcelhos();
+        filtrarFreguesias();
+    });
+    concelhoSelect.addEventListener('change', filtrarFreguesias);
+
+    filtrarConcelhos();
+    filtrarFreguesias();
+</script>
 {% endblock %}
