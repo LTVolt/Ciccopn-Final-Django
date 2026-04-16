@@ -97,6 +97,10 @@
                 <div class="stat-value">{{ total_imoveis_associados }}</div>
             </div>
         {% endif %}
+        <div class="stat-card">
+            <div class="stat-label">Favoritos</div>
+            <div class="stat-value">{{ total_favoritos }}</div>
+        </div>
     </div>
 
     <div class="card">
@@ -130,6 +134,25 @@
             <p class="muted">Não existem imóveis associados ao seu email neste momento.</p>
         {% else %}
             <p class="muted">Esta secção mostra imóveis quando a conta é do tipo anunciante.</p>
+        {% endif %}
+    </div>
+
+    <div class="card">
+        <h3 style="margin-top:0;">Os seus favoritos</h3>
+        {% if favoritos_imoveis %}
+            <div class="mini-list">
+                {% for item in favoritos_imoveis %}
+                    <div class="mini-item">
+                        <a href="{% url 'imovel:detalhe_imovel' item.id_imovel %}">{{ item.morada }}</a>
+                        <div class="muted" style="margin-top:4px;">€{{ item.preco }} · {{ item.id_freguesia.nome }}</div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="muted">Ainda não adicionou imóveis aos favoritos.</p>
+            <div class="cta-row">
+                <a class="btn" href="{% url 'imovel:lista_imoveis' %}">Explorar imóveis</a>
+            </div>
         {% endif %}
     </div>
 </div>

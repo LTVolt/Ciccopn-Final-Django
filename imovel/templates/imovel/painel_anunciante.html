@@ -112,6 +112,10 @@
             <div class="kpi-label">Imóveis associados</div>
             <div class="kpi-value">{{ total_imoveis }}</div>
         </div>
+        <div class="kpi-card">
+            <div class="kpi-label">Favoritos guardados</div>
+            <div class="kpi-value">{{ total_favoritos }}</div>
+        </div>
     </div>
 
     <div class="card">
@@ -141,6 +145,28 @@
             </div>
         {% else %}
             <p class="muted">Ainda não há imóveis associados ao seu email.</p>
+        {% endif %}
+    </div>
+
+    <div class="card">
+        <h3 style="margin-top:0;">Os seus favoritos</h3>
+        {% if favoritos_imoveis %}
+            <div class="lista-imoveis">
+                {% for item in favoritos_imoveis %}
+                    <div class="item-imovel">
+                        <div class="item-meta">
+                            <a href="{% url 'imovel:detalhe_imovel' item.id_imovel %}">{{ item.morada }}</a>
+                            <div class="muted">€{{ item.preco }} · {{ item.id_freguesia.nome }}, {{ item.id_freguesia.id_concelho.nome }}</div>
+                        </div>
+                        <div class="item-acoes">
+                            <a class="btn btn-sm" href="{% url 'imovel:detalhe_imovel' item.id_imovel %}">Ver detalhe</a>
+                            <a class="btn btn-sm" style="background:#0ea5a4;" href="{% url 'imovel:lista_imoveis' %}">Ir à pesquisa</a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="muted">Ainda não adicionou imóveis aos favoritos.</p>
         {% endif %}
     </div>
 </div>

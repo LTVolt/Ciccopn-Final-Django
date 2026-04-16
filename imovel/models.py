@@ -254,6 +254,7 @@ class Imovel(models.Model):
 	imagem_principal = models.ImageField(upload_to='imoveis/', null=True, blank=True)
 	data_construcao = models.DateField(null=True, blank=True)
 	area = models.DecimalField(max_digits=6, decimal_places=2)
+	contador_cliques = models.PositiveIntegerField(default=0)
     
 	id_anunciante = models.ForeignKey(
 		Anunciante,
@@ -360,3 +361,25 @@ class PerfilUtilizador(models.Model):
 	@property
 	def is_anunciante(self):
 		return self.tipo_utilizador == self.TIPO_ANUNCIANTE
+
+
+class Favorito(models.Model):
+	"""Associação entre utilizador e imóveis favoritos."""
+	id_favorito = models.AutoField(primary_key=True)
+	user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='favoritos_imoveis')
+	id_imovel = models.ForeignKey(
+		Imovel,
+		on_delete=models.CASCADE,
+		related_name='favoritos',
+		db_column='id_imovel',
+	)
+	criado_em = models.DateTimeField(auto_now_add=True)
+
+	class Meta:
+		db_table = 'favorito'
+		verbose_name = 'Favorito'
+		verbose_name_plural = 'Favoritos'
+		unique_together = ('user', 'id_imovel')
+
+	def __str__(self):
+		return f"{self.user.username} -> {self.id_imovel.morada}"

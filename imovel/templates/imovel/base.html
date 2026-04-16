@@ -3,25 +3,199 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Imobiliária{% endblock %}</title>
+    <title>{% block title %}Portal{% endblock %}</title>
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('imociccopn-theme');
+            const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const theme = savedTheme || (prefersDark ? 'dark' : 'light');
+            document.documentElement.setAttribute('data-theme', theme);
+        })();
+    </script>
     <style>
-        body { font-family: Arial, sans-serif; margin: 0; background: #f6f8fb; color: #1f2937; }
-        header { background: #0f172a; color: white; padding: 16px 24px; }
-        nav a { color: white; margin-right: 14px; text-decoration: none; }
+        :root {
+            --bg-page: #f6f8fb;
+            --bg-header: #0f172a;
+            --text-main: #1f2937;
+            --text-on-header: #ffffff;
+            --card-bg: #ffffff;
+            --card-border: rgba(15, 23, 42, 0.08);
+            --muted: #6b7280;
+            --btn-primary: #2563eb;
+            --btn-primary-text: #ffffff;
+            --btn-header-border: #475569;
+            --btn-header-text: #ffffff;
+            --message-bg: #e2e8f0;
+            --input-bg: #ffffff;
+            --input-text: #0f172a;
+            --input-border: #cbd5e1;
+            --link-color: #dbeafe;
+        }
+        html[data-theme='dark'] {
+            --bg-page: #0b1220;
+            --bg-header: #020617;
+            --text-main: #e2e8f0;
+            --text-on-header: #f8fafc;
+            --card-bg: #111827;
+            --card-border: rgba(148, 163, 184, 0.25);
+            --muted: #94a3b8;
+            --btn-primary: #3b82f6;
+            --btn-primary-text: #eff6ff;
+            --btn-header-border: #64748b;
+            --btn-header-text: #f8fafc;
+            --message-bg: #1e293b;
+            --input-bg: #0f172a;
+            --input-text: #e2e8f0;
+            --input-border: #334155;
+            --link-color: #bfdbfe;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background: var(--bg-page);
+            color: var(--text-main);
+            transition: background-color 0.25s ease, color 0.25s ease;
+        }
+        header {
+            background: var(--bg-header);
+            color: var(--text-on-header);
+            padding: 16px 24px;
+            transition: background-color 0.25s ease;
+        }
+        nav a {
+            color: var(--text-on-header);
+            margin-right: 14px;
+            text-decoration: none;
+        }
+        nav a:hover {
+            text-decoration: underline;
+        }
         main { max-width: 980px; margin: 24px auto; padding: 0 16px; }
-        .card { background: white; border-radius: 10px; padding: 16px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.12); }
-        .muted { color: #6b7280; }
+        .card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+            border: 1px solid var(--card-border);
+        }
+        .muted { color: var(--muted); }
         .price { font-weight: 700; color: #0b5; }
-        .btn { display:inline-block; background:#2563eb; color:#fff; padding:8px 12px; border-radius:8px; text-decoration:none; }
-        .btn-link { background: transparent; border: 1px solid #475569; color: #fff; padding: 6px 10px; border-radius: 8px; cursor: pointer; }
-        .message { border-radius: 8px; padding: 10px; margin-bottom: 10px; background: #e2e8f0; }
+        .btn {
+            display:inline-block;
+            background: var(--btn-primary);
+            color: var(--btn-primary-text);
+            padding: 8px 12px;
+            border-radius: 8px;
+            text-decoration: none;
+            border: 0;
+            cursor: pointer;
+        }
+        .btn-link {
+            background: transparent;
+            border: 1px solid var(--btn-header-border);
+            color: var(--btn-header-text);
+            padding: 6px 10px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .message {
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 10px;
+            background: var(--message-bg);
+        }
         .nav-inline-form { display: inline; }
+        .header-top {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+        .site-title {
+            margin: 0;
+            text-align: center;
+        }
+        .theme-toggle {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 34px;
+            height: 34px;
+            border-radius: 999px;
+            border: 1px solid var(--btn-header-border);
+            background: rgba(148, 163, 184, 0.12);
+            color: var(--text-on-header);
+            cursor: pointer;
+        }
+        .theme-toggle:hover {
+            background: rgba(148, 163, 184, 0.2);
+        }
+        .theme-toggle svg {
+            width: 17px;
+            height: 17px;
+            fill: currentColor;
+        }
+        .nav-bar {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            margin-top: 12px;
+            gap: 4px;
+            flex-wrap: wrap;
+        }
+
+        /* Dark-mode safety overrides for page-level inline styles in templates */
+        html[data-theme='dark'] .card,
+        html[data-theme='dark'] .metric,
+        html[data-theme='dark'] .service-card,
+        html[data-theme='dark'] .auth-card,
+        html[data-theme='dark'] .localizacao-box,
+        html[data-theme='dark'] .galeria-box,
+        html[data-theme='dark'] .hint-box {
+            background: var(--card-bg) !important;
+            border-color: var(--card-border) !important;
+            color: var(--text-main) !important;
+        }
+        html[data-theme='dark'] .metric-label,
+        html[data-theme='dark'] .card-body p,
+        html[data-theme='dark'] .auth-subtitle,
+        html[data-theme='dark'] .hero p,
+        html[data-theme='dark'] .anuncio-hero p,
+        html[data-theme='dark'] .muted {
+            color: var(--muted) !important;
+        }
+        html[data-theme='dark'] .metric-value,
+        html[data-theme='dark'] .card-body h3,
+        html[data-theme='dark'] .auth-card h3,
+        html[data-theme='dark'] .campo label,
+        html[data-theme='dark'] .auth-field label {
+            color: var(--text-main) !important;
+        }
+        html[data-theme='dark'] input,
+        html[data-theme='dark'] select,
+        html[data-theme='dark'] textarea {
+            background: var(--input-bg) !important;
+            color: var(--input-text) !important;
+            border-color: var(--input-border) !important;
+        }
+        html[data-theme='dark'] a:not(.btn):not(.btn-alt):not(.auth-link) {
+            color: var(--link-color);
+        }
     </style>
 </head>
 <body>
     <header>
-        <h1 style="margin:0;">Portal Imobiliário</h1>
-        <nav style="margin-top:8px;">
+        <div class="header-top">
+            <h1 class="site-title">Imociccopn</h1>
+            <button type="button" id="theme-toggle" class="theme-toggle" aria-label="Mudar tema" title="Mudar tema">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path id="theme-icon-path"></path>
+                </svg>
+            </button>
+        </div>
+        <nav class="nav-bar">
             <a href="{% url 'imovel:home' %}">Início</a>
             <a href="{% url 'imovel:lista_imoveis' %}">Imóveis</a>
             {% if user.is_authenticated %}
@@ -44,5 +218,46 @@
         {% endif %}
         {% block content %}{% endblock %}
     </main>
+    <script>
+        (function() {
+            const storageKey = 'imociccopn-theme';
+            const moonPath = 'M21 12.79A9 9 0 1 1 11.21 3c.1.5.13 1.04.13 1.58a9 9 0 0 0 9.66 9.21z';
+            const sunPath = 'M12 4a1 1 0 0 1 1 1v1.2a1 1 0 1 1-2 0V5a1 1 0 0 1 1-1zm0 12.8a1 1 0 0 1 1 1V19a1 1 0 1 1-2 0v-1.2a1 1 0 0 1 1-1zM4 11a1 1 0 1 1 0 2H2.8a1 1 0 1 1 0-2H4zm17.2 0a1 1 0 1 1 0 2H20a1 1 0 1 1 0-2h1.2zM6.34 6.34a1 1 0 0 1 1.42 0l.85.85a1 1 0 0 1-1.41 1.42l-.86-.86a1 1 0 0 1 0-1.41zm9.9 9.9a1 1 0 0 1 1.41 0l.86.86a1 1 0 0 1-1.42 1.41l-.85-.85a1 1 0 0 1 0-1.42zM17.66 6.34a1 1 0 0 1 0 1.41l-.85.86a1 1 0 1 1-1.42-1.42l.86-.85a1 1 0 0 1 1.41 0zm-9.9 9.9a1 1 0 0 1 0 1.42l-.86.85a1 1 0 0 1-1.41-1.41l.85-.86a1 1 0 0 1 1.42 0zM12 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8z';
+            const root = document.documentElement;
+            const toggleButton = document.getElementById('theme-toggle');
+            const iconPath = document.getElementById('theme-icon-path');
+
+            function getTheme() {
+                return root.getAttribute('data-theme') || 'light';
+            }
+
+            function setIcon(theme) {
+                if (!iconPath) {
+                    return;
+                }
+                const isDark = theme === 'dark';
+                iconPath.setAttribute('d', isDark ? sunPath : moonPath);
+                if (toggleButton) {
+                    toggleButton.setAttribute('aria-label', isDark ? 'Mudar para tema claro' : 'Mudar para tema escuro');
+                    toggleButton.setAttribute('title', isDark ? 'Tema claro' : 'Tema escuro');
+                }
+            }
+
+            function applyTheme(theme) {
+                root.setAttribute('data-theme', theme);
+                localStorage.setItem(storageKey, theme);
+                setIcon(theme);
+            }
+
+            setIcon(getTheme());
+
+            if (toggleButton) {
+                toggleButton.addEventListener('click', function() {
+                    const nextTheme = getTheme() === 'dark' ? 'light' : 'dark';
+                    applyTheme(nextTheme);
+                });
+            }
+        })();
+    </script>
 </body>
 </html>

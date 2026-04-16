@@ -4,11 +4,13 @@ from django.contrib import messages
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.shortcuts import redirect
-from django.db.models import Prefetch
+from django.db.models import F, Prefetch
+from django.views.decorators.http import require_POST
 
-from .models import Anunciante, Concelho, Distrito, Freguesia, Imovel, ImovelImagem, PerfilUtilizador
+from .models import Anunciante, Concelho, Distrito, Favorito, Freguesia, Imovel, ImovelImagem, PerfilUtilizador
 from .forms import ImovelForm, RegistoForm
 
 
@@ -118,6 +120,8 @@ def lista_imoveis(request):
 	preco_max_raw = request.GET.get('preco_max', '').strip()
 	area_min_raw = request.GET.get('area_min', '').strip()
 	area_max_raw = request.GET.get('area_max', '').strip()
+	apenas_favoritos_raw = request.GET.get('apenas_favoritos', '').strip()
+	ordenar_por = request.GET.get('ordenar_por', '').strip()
 
 	tipologia = _parse_int(tipologia_raw, 0, 9)
 	numero_wc = _parse_int(wc_raw, 0, 9)
@@ -154,7 +158,30 @@ def lista_imoveis(request):
 	if area_max is not None:
 		imoveis = imoveis.filter(area__lte=area_max)
 
-	imoveis = imoveis.order_by('-data_anuncio')
+	apenas_favoritos = apenas_favoritos_raw in ('1', 'true', 'on', 'sim')
+	if apenas_favoritos and request.user.is_authenticated:
+		imoveis = imoveis.filter(favoritos__user=request.user)
+
+	mapa_ordenacao = {
+		'preco_asc': ['preco', '-data_anuncio'],
+		'preco_desc': ['-preco', '-data_anuncio'],
+		'area_asc': ['area', '-data_anuncio'],
+		'area_desc': ['-area', '-data_anuncio'],
+		'data_construcao_asc': ['data_construcao', '-data_anuncio'],
+		'data_construcao_desc': ['-data_construcao', '-data_anuncio'],
+		'popularidade_desc': ['-contador_cliques', '-data_anuncio'],
+	}
+	ordenacao = mapa_ordenacao.get(ordenar_por, ['-data_anuncio'])
+	imoveis = imoveis.order_by(*ordenacao)
+
+	favoritos_ids = set()
+	if request.user.is_authenticated:
+		favoritos_ids = set(
+			Favorito.objects.filter(user=request.user, id_imovel__in=imoveis)
+			.values_list('id_imovel_id', flat=True)
+		)
+
+	imoveis = imoveis.distinct()
 
 	distritos = Distrito.objects.all().order_by('nome')
 	concelhos = Concelho.objects.select_related('id_distrito').all().order_by('nome')
@@ -162,9 +189,11 @@ def lista_imoveis(request):
 
 	context = {
 		'imoveis': imoveis,
+		'favoritos_ids': favoritos_ids,
 		'distritos': distritos,
 		'concelhos': concelhos,
 		'freguesias': freguesias,
+		'current_path': request.get_full_path(),
 		'range_0_9': range(10),
 		'selected': {
 			'distrito': distrito_id,
@@ -176,7 +205,19 @@ def lista_imoveis(request):
 			'preco_max': preco_max_raw,
 			'area_min': area_min_raw,
 			'area_max': area_max_raw,
+			'apenas_favoritos': apenas_favoritos,
+			'ordenar_por': ordenar_por,
 		},
+		'ordenacao_opcoes': [
+			{'value': '', 'label': 'Mais recentes (padrão)'},
+			{'value': 'popularidade_desc', 'label': 'Popularidade: mais vistos'},
+			{'value': 'preco_asc', 'label': 'Preço: ascendente'},
+			{'value': 'preco_desc', 'label': 'Preço: descendente'},
+			{'value': 'area_asc', 'label': 'Área: ascendente'},
+			{'value': 'area_desc', 'label': 'Área: descendente'},
+			{'value': 'data_construcao_asc', 'label': 'Data de construção: mais antigo'},
+			{'value': 'data_construcao_desc', 'label': 'Data de construção: mais recente'},
+		],
 	}
 
 	return render(request, 'imovel/lista_imoveis.html', context)
@@ -190,6 +231,8 @@ def detalhe_imovel(request, id_imovel):
 		).prefetch_related('imagens'),
 		pk=id_imovel,
 	)
+	Imovel.objects.filter(pk=imovel.pk).update(contador_cliques=F('contador_cliques') + 1)
+	imovel.contador_cliques += 1
 	return render(request, 'imovel/detalhe_imovel.html', {'imovel': imovel})
 
 
@@ -244,10 +287,19 @@ def perfil(request):
 	if perfil.is_anunciante and request.user.email:
 		imoveis_associados = Imovel.objects.filter(id_anunciante__email=request.user.email)
 
+	favoritos_imoveis = (
+		Imovel.objects.filter(favoritos__user=request.user)
+		.select_related('id_freguesia__id_concelho__id_distrito')
+		.distinct()
+		.order_by('-favoritos__criado_em')
+	)
+
 	context = {
 		'perfil': perfil,
 		'imoveis_associados': imoveis_associados[:10],
 		'total_imoveis_associados': imoveis_associados.count(),
+		'favoritos_imoveis': favoritos_imoveis[:12],
+		'total_favoritos': favoritos_imoveis.count(),
 	}
 	return render(request, 'imovel/perfil.html', context)
 
@@ -263,12 +315,53 @@ def painel_anunciante(request):
 	if request.user.email:
 		imoveis = Imovel.objects.filter(id_anunciante__email=request.user.email).order_by('-data_anuncio')
 
+	favoritos_imoveis = (
+		Imovel.objects.filter(favoritos__user=request.user)
+		.select_related('id_freguesia__id_concelho__id_distrito')
+		.distinct()
+		.order_by('-favoritos__criado_em')
+	)
+
 	context = {
 		'perfil': perfil,
 		'imoveis': imoveis[:30],
 		'total_imoveis': imoveis.count(),
+		'favoritos_imoveis': favoritos_imoveis[:12],
+		'total_favoritos': favoritos_imoveis.count(),
 	}
 	return render(request, 'imovel/painel_anunciante.html', context)
+
+
+@login_required
+@require_POST
+def toggle_favorito(request, id_imovel):
+	imovel = get_object_or_404(Imovel, pk=id_imovel)
+	favorito_qs = Favorito.objects.filter(user=request.user, id_imovel=imovel)
+
+	if favorito_qs.exists():
+		favorito_qs.delete()
+		is_favorito = False
+		mensagem = 'Imóvel removido dos favoritos.'
+	else:
+		Favorito.objects.create(user=request.user, id_imovel=imovel)
+		is_favorito = True
+		mensagem = 'Imóvel adicionado aos favoritos.'
+
+	if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+		return JsonResponse(
+			{
+				'ok': True,
+				'is_favorito': is_favorito,
+				'id_imovel': imovel.id_imovel,
+				'message': mensagem,
+			}
+		)
+
+	messages.success(request, mensagem)
+	next_url = request.POST.get('next') or request.META.get('HTTP_REFERER')
+	if next_url:
+		return redirect(next_url)
+	return redirect('imovel:lista_imoveis')
 
 
 @login_required

@@ -3,10 +3,195 @@
 {% block title %}Início{% endblock %}
 
 {% block content %}
-<div class="card">
-    <h2>Bem-vindo ao portal imobiliário</h2>
-    <p class="muted">Este projeto está ligado à sua base de dados MySQL e já consegue mostrar imóveis reais.</p>
-    <p>Total de imóveis na base de dados: <strong>{{ total_imoveis }}</strong></p>
-    <a class="btn" href="{% url 'imovel:lista_imoveis' %}">Ver imóveis</a>
+<style>
+    .home-wrap {
+        max-width: 1080px;
+        margin: 0 auto;
+    }
+    .hero {
+        position: relative;
+        overflow: hidden;
+        border-radius: 16px;
+        padding: 26px;
+        color: #fff;
+        background: radial-gradient(circle at 20% 20%, #2563eb 0%, #1d4ed8 35%, #0f172a 100%);
+        box-shadow: 0 14px 30px rgba(15, 23, 42, 0.30);
+        margin-bottom: 14px;
+    }
+    .hero::after {
+        content: "";
+        position: absolute;
+        right: -50px;
+        top: -30px;
+        width: 220px;
+        height: 220px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.10);
+    }
+    .hero h2 {
+        margin: 0;
+        font-size: 2rem;
+        line-height: 1.2;
+        max-width: 620px;
+        position: relative;
+        z-index: 1;
+    }
+    .hero p {
+        margin: 12px 0 0;
+        max-width: 700px;
+        color: #dbeafe;
+        position: relative;
+        z-index: 1;
+    }
+    .hero-cta {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 16px;
+        position: relative;
+        z-index: 1;
+    }
+    .btn-alt {
+        display: inline-block;
+        background: rgba(255, 255, 255, 0.12);
+        color: #fff;
+        padding: 8px 12px;
+        border-radius: 8px;
+        text-decoration: none;
+        border: 1px solid rgba(255, 255, 255, 0.28);
+    }
+    .metric-strip {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+        margin-bottom: 14px;
+    }
+    .metric {
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 12px;
+    }
+    .metric-label {
+        color: #64748b;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+    }
+    .metric-value {
+        margin-top: 4px;
+        color: #0f172a;
+        font-weight: 700;
+        font-size: 1.2rem;
+    }
+    .cards-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+    }
+    .service-card {
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
+        overflow: hidden;
+        box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+    }
+    .card-visual {
+        height: 140px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-size: 2rem;
+        font-weight: 700;
+        letter-spacing: .03em;
+    }
+    .visual-1 {
+        background: linear-gradient(130deg, #0ea5a4 0%, #0f766e 100%);
+    }
+    .visual-2 {
+        background: linear-gradient(130deg, #f59e0b 0%, #d97706 100%);
+    }
+    .visual-3 {
+        background: linear-gradient(130deg, #8b5cf6 0%, #4f46e5 100%);
+    }
+    .card-body {
+        padding: 14px;
+    }
+    .card-body h3 {
+        margin: 0;
+        color: #0f172a;
+    }
+    .card-body p {
+        margin: 8px 0 0;
+        color: #64748b;
+        line-height: 1.45;
+    }
+    @media (max-width: 920px) {
+        .cards-grid {
+            grid-template-columns: 1fr;
+        }
+        .metric-strip {
+            grid-template-columns: 1fr;
+        }
+        .hero h2 {
+            font-size: 1.6rem;
+        }
+    }
+</style>
+
+<div class="home-wrap">
+    <section class="hero">
+        <h2>A plataforma imobiliária para acelerar anúncios, captação e conversão.</h2>
+        <p>
+            Centralize imóveis, equipas e leads num só produto. Escalável para agências e anunciantes independentes,
+            com experiência moderna e dados sempre sincronizados.
+        </p>
+        <div class="hero-cta">
+            <a class="btn" href="{% url 'imovel:lista_imoveis' %}">Explorar imóveis</a>
+            <a class="btn-alt" href="{% url 'imovel:registo' %}">Criar conta</a>
+        </div>
+    </section>
+
+    <section class="metric-strip">
+        <div class="metric">
+            <div class="metric-label">Imóveis ativos</div>
+            <div class="metric-value">{{ total_imoveis }}</div>
+        </div>
+        <div class="metric">
+            <div class="metric-label">Modelo</div>
+            <div class="metric-value">Subscrição à medida</div>
+        </div>
+        <div class="metric">
+            <div class="metric-label">Experiência</div>
+            <div class="metric-value">Pesquisa + gestão completa</div>
+        </div>
+    </section>
+
+    <section class="cards-grid">
+        <article class="service-card">
+            <div class="card-visual visual-1">LEADS</div>
+            <div class="card-body">
+                <h3>Captação inteligente</h3>
+                <p>Converta visitantes em oportunidades reais com páginas rápidas, filtros avançados e contacto imediato.</p>
+            </div>
+        </article>
+
+        <article class="service-card">
+            <div class="card-visual visual-2">MEDIA</div>
+            <div class="card-body">
+                <h3>Galerias que vendem</h3>
+                <p>Mostre cada imóvel com visual profissional, navegação por fotos e apresentação focada em conversão.</p>
+            </div>
+        </article>
+
+        <article class="service-card">
+            <div class="card-visual visual-3">SCALE</div>
+            <div class="card-body">
+                <h3>Escala para equipas</h3>
+                <p>Organize anunciantes, contas e anúncios num fluxo único pronto para crescer por planos de subscrição.</p>
+            </div>
+        </article>
+    </section>
 </div>
 {% endblock %}

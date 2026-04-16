@@ -62,6 +62,10 @@ Bem-vindo! Aqui encontra toda a documentação sobre o desenvolvimento do seu si
 - **[13_ESTILO_FORM_ANUNCIO_E_LOCALIZACAO.md](13_ESTILO_FORM_ANUNCIO_E_LOCALIZACAO.md)** - Estilo moderno e dropdowns dependentes no formulário
 - **[14_ESTILO_DASHBOARDS_UTILIZADOR.md](14_ESTILO_DASHBOARDS_UTILIZADOR.md)** - Modernização visual das dashboards
 - **[15_CONTINUIDADE_NOUTRA_MAQUINA.md](15_CONTINUIDADE_NOUTRA_MAQUINA.md)** - Como instalar e continuar noutra máquina
+- **[16_ESTILO_HOMEPAGE_SAAS.md](16_ESTILO_HOMEPAGE_SAAS.md)** - Homepage moderna com proposta SaaS e cartões visuais
+- **[17_ESTILO_AUTENTICACAO_E_TEMA.md](17_ESTILO_AUTENTICACAO_E_TEMA.md)** - Modernização de login/registo e alternância de tema claro/escuro com LocalStorage
+- **[20_FAVORITOS_E_FILTROS_AVANCADOS.md](20_FAVORITOS_E_FILTROS_AVANCADOS.md)** - Estrela de favoritos, dashboards com favoritos e filtro/ordenação avançada na pesquisa
+- **[21_POPULARIDADE_E_ORDENACAO.md](21_POPULARIDADE_E_ORDENACAO.md)** - Contador de cliques por imóvel e ordenação por popularidade
 
 ---
 

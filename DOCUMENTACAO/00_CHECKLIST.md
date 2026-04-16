@@ -154,3 +154,49 @@ Implementação concluída: eliminação de anúncios com confirmação e upload
 - [x] Ficheiro `requirements.txt` criado com versões fixas
 - [x] Guia detalhado de continuidade criado
 - [x] Passos de instalação, configuração e validação documentados
+
+---
+
+## Fase 18: Homepage Moderna SaaS (✅ COMPLETO)
+- [x] Hero moderno com proposta de valor
+- [x] CTAs de exploração e registo
+- [x] Barra de métricas na homepage
+- [x] Três cartões visuais apelativos sobre o serviço
+- [x] Layout responsivo
+
+---
+
+## Fase 19: Autenticação moderna + Tema claro/escuro (✅ COMPLETO)
+- [x] Login modernizado com layout responsivo e consistente
+- [x] Registo modernizado com estilo coerente com o restante portal
+- [x] Botão global de alternância de tema no cabeçalho
+- [x] Ícone dinâmico meia-lua/sol conforme tema ativo
+- [x] Persistência do tema no LocalStorage (`imociccopn-theme`)
+- [x] Aplicação automática do tema no carregamento
+
+---
+
+## Fase 20: Favoritos e filtros avançados (✅ COMPLETO)
+- [x] Estrela de favoritos em cada cartão de imóvel
+- [x] Toggle de favorito por utilizador autenticado
+- [x] Persistência de favoritos na base de dados
+- [x] Lista de favoritos na dashboard de utilizador comum
+- [x] Lista de favoritos no painel de anunciante
+- [x] Checkbox para mostrar apenas favoritos na pesquisa
+- [x] Dropdown de ordenação por preço, área e data de construção
+
+---
+
+## Fase 21: Popularidade por cliques (✅ COMPLETO)
+- [x] Campo `contador_cliques` adicionado ao modelo de imóvel
+- [x] Incremento automático em cada acesso ao detalhe
+- [x] Contagem aplicada a visitantes com e sem login
+- [x] Ordenação por popularidade (mais vistos) na pesquisa
+- [x] Popularidade visível na listagem e no detalhe
+
+---
+
+## Nota Técnica de Migração (✅ ADICIONADA)
+- [x] Guia atualizado com boas práticas de dump/import para evitar acentos corrompidos
+- [x] Instruções para uso de `mysqldump --result-file`
+- [x] Instruções para correção com `tools/fix_dump_encoding.py`

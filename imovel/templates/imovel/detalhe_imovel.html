@@ -23,6 +23,7 @@
         <li><strong>Quartos:</strong> {{ imovel.numero_quartos }}</li>
         <li><strong>WC:</strong> {{ imovel.numero_wc }}</li>
         <li><strong>Área:</strong> {{ imovel.area }} m²</li>
+        <li><strong>Popularidade:</strong> {{ imovel.contador_cliques }} visualizações</li>
         <li><strong>Data de construção:</strong> {{ imovel.data_construcao|date:'d/m/Y'|default:'N/A' }}</li>
         <li><strong>Freguesia:</strong> {{ imovel.id_freguesia.nome }}</li>
         <li><strong>Concelho:</strong> {{ imovel.id_freguesia.id_concelho.nome }}</li>

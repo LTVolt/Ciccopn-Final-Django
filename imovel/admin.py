@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.utils.html import format_html
-from .models import Rede, Agencia, Consultor, Proprietario, Distrito, Concelho, Freguesia, Anunciante, Imovel, ImovelImagem, PerfilUtilizador
+from .models import Rede, Agencia, Consultor, Proprietario, Distrito, Concelho, Freguesia, Anunciante, Imovel, ImovelImagem, PerfilUtilizador, Favorito
 
 # ============================================
 # CONFIGURAÇÃO DO PAINEL ADMIN
@@ -120,3 +120,10 @@ class PerfilUtilizadorAdmin(admin.ModelAdmin):
 	list_display = ('user', 'tipo_utilizador', 'criado_em')
 	list_filter = ('tipo_utilizador',)
 	search_fields = ('user__username', 'user__email')
+
+
+@admin.register(Favorito)
+class FavoritoAdmin(admin.ModelAdmin):
+	list_display = ('id_favorito', 'user', 'id_imovel', 'criado_em')
+	list_filter = ('criado_em',)
+	search_fields = ('user__username', 'user__email', 'id_imovel__morada')

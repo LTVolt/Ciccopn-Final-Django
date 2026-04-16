@@ -33,6 +33,17 @@
         margin-top: 8px;
         flex-wrap: wrap;
     }
+    .filtro-checkbox {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 4px;
+        font-size: 14px;
+    }
+    .filtro-checkbox input {
+        width: auto;
+        margin: 0;
+    }
     .btn-sec {
         display: inline-block;
         background: #6b7280;
@@ -88,6 +99,48 @@
         display: flex;
         gap: 14px;
         align-items: flex-start;
+    }
+    .card-imovel {
+        position: relative;
+    }
+    .favorito-form,
+    .favorito-link {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 3;
+    }
+    .favorito-btn {
+        width: 34px;
+        height: 34px;
+        border-radius: 999px;
+        border: 1px solid #d1d5db;
+        background: rgba(255, 255, 255, 0.92);
+        color: #64748b;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        cursor: pointer;
+    }
+    .favorito-btn svg {
+        width: 18px;
+        height: 18px;
+        fill: transparent;
+        stroke: currentColor;
+        stroke-width: 1.8;
+    }
+    .favorito-btn.ativo {
+        color: #f59e0b;
+        border-color: #f59e0b;
+        background: #fffbeb;
+    }
+    .favorito-btn.ativo svg {
+        fill: currentColor;
+        stroke: currentColor;
+    }
+    .favorito-btn:hover {
+        transform: translateY(-1px);
     }
     .imovel-info {
         flex: 1;
@@ -200,6 +253,32 @@
                 <label for="id_area_max">Área máxima (m²)</label>
                 <input id="id_area_max" type="number" step="0.01" min="0" name="area_max" value="{{ selected.area_max }}">
             </div>
+
+            <div class="filtro-campo">
+                <label for="id_ordenar_por">Ordenar por</label>
+                <select id="id_ordenar_por" name="ordenar_por">
+                    {% for op in ordenacao_opcoes %}
+                        <option value="{{ op.value }}" {% if selected.ordenar_por == op.value %}selected{% endif %}>{{ op.label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="filtro-campo">
+                <label>&nbsp;</label>
+                <label class="filtro-checkbox" for="id_apenas_favoritos">
+                    <input
+                        id="id_apenas_favoritos"
+                        type="checkbox"
+                        name="apenas_favoritos"
+                        value="1"
+                        {% if selected.apenas_favoritos %}checked{% endif %}
+                        {% if not user.is_authenticated %}disabled{% endif %}>
+                    Mostrar apenas favoritos
+                </label>
+                {% if not user.is_authenticated %}
+                    <div class="muted" style="font-size:12px; margin-top:4px;">Inicie sessão para usar este filtro.</div>
+                {% endif %}
+            </div>
         </div>
 
         <div class="filtro-acoes">
@@ -213,7 +292,33 @@
 
 {% if imoveis %}
     {% for item in imoveis %}
-        <div class="card">
+        <div class="card card-imovel">
+            {% if user.is_authenticated %}
+                <form method="post" action="{% url 'imovel:toggle_favorito' item.id_imovel %}" class="favorito-form" data-favorito-form>
+                    {% csrf_token %}
+                    <input type="hidden" name="next" value="{{ current_path }}">
+                    <button
+                        type="submit"
+                        class="favorito-btn {% if item.id_imovel in favoritos_ids %}ativo{% endif %}"
+                        data-favorito-btn
+                        aria-label="Favoritar imóvel"
+                        aria-pressed="{% if item.id_imovel in favoritos_ids %}true{% else %}false{% endif %}"
+                        title="{% if item.id_imovel in favoritos_ids %}Remover dos favoritos{% else %}Adicionar aos favoritos{% endif %}">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M12 17.27L18.18 21 16.54 13.97 22 9.24 14.81 8.63 12 2 9.19 8.63 2 9.24 7.46 13.97 5.82 21z"></path>
+                        </svg>
+                    </button>
+                </form>
+            {% else %}
+                <a class="favorito-link" href="{% url 'imovel:login' %}?next={{ current_path|urlencode }}" title="Inicie sessão para guardar favoritos">
+                    <span class="favorito-btn" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M12 17.27L18.18 21 16.54 13.97 22 9.24 14.81 8.63 12 2 9.19 8.63 2 9.24 7.46 13.97 5.82 21z"></path>
+                        </svg>
+                    </span>
+                </a>
+            {% endif %}
+
             <div class="imovel-linha">
                 {% if item.imagens.all %}
                     <div class="galeria-card" data-galeria>
@@ -241,6 +346,7 @@
                     <h3 style="margin-top:0;">{{ item.morada }}</h3>
                     <p class="price">€{{ item.preco }}</p>
                     <p>Quartos: {{ item.numero_quartos }} | WC: {{ item.numero_wc }} | Área: {{ item.area }} m²</p>
+                    <p class="muted">Popularidade: {{ item.contador_cliques }} visualizações</p>
                     <p class="muted">{{ item.id_freguesia.nome }}, {{ item.id_freguesia.id_concelho.nome }}, {{ item.id_freguesia.id_concelho.id_distrito.nome }}</p>
                     <p class="muted">Anunciado em: {{ item.data_anuncio|date:'d/m/Y H:i' }}</p>
 
@@ -367,9 +473,51 @@
         });
     }
 
+    function inicializarFavoritos() {
+        const formularios = document.querySelectorAll('[data-favorito-form]');
+        formularios.forEach((formulario) => {
+            formulario.addEventListener('submit', async (evento) => {
+                evento.preventDefault();
+                const botao = formulario.querySelector('[data-favorito-btn]');
+                if (!botao) {
+                    return;
+                }
+                if (botao.dataset.loading === '1') {
+                    return;
+                }
+
+                botao.dataset.loading = '1';
+                try {
+                    const resposta = await fetch(formulario.action, {
+                        method: 'POST',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: new FormData(formulario)
+                    });
+
+                    if (!resposta.ok) {
+                        throw new Error('Falha ao atualizar favorito.');
+                    }
+
+                    const dados = await resposta.json();
+                    const ativo = Boolean(dados.is_favorito);
+                    botao.classList.toggle('ativo', ativo);
+                    botao.setAttribute('aria-pressed', ativo ? 'true' : 'false');
+                    botao.setAttribute('title', ativo ? 'Remover dos favoritos' : 'Adicionar aos favoritos');
+                } catch (erro) {
+                    HTMLFormElement.prototype.submit.call(formulario);
+                } finally {
+                    botao.dataset.loading = '0';
+                }
+            });
+        });
+    }
+
     filtrarConcelhos();
     filtrarFreguesias();
     inicializarGalerias();
     inicializarContactos();
+    inicializarFavoritos();
 </script>
 {% endblock %}

@@ -165,3 +165,46 @@ python -m venv .venv ; .\.venv\Scripts\Activate.ps1 ; pip install -U pip ; pip i
 ## 12) Próxima melhoria recomendada
 
 Para maior segurança, mover credenciais da BD para variáveis de ambiente (em vez de deixar no `settings.py`).
+
+---
+
+## 13) Exportar e importar a base com acentos corretos (muito importante)
+
+### Problema comum
+Ao fazer dump com `>` no PowerShell, o ficheiro pode sair em UTF-16 LE.
+Isso pode provocar texto corrompido (`Ag├¬ncia`, `S├úo`, etc.) após importação.
+
+### Forma correta de gerar dump (recomendado)
+Usar `--result-file` no `mysqldump`:
+
+```powershell
+mysqldump -h SEU_HOST -P 3306 -u SEU_USER -p --default-character-set=utf8mb4 --routines --triggers --events --result-file=imociccopngrupo1_backup.sql imociccopngrupo1
+```
+
+### Importação correta
+
+```powershell
+cmd /c "mysql -h NOVO_HOST -P 3306 -u NOVO_USER -p --default-character-set=utf8mb4 imociccopngrupo1 < imociccopngrupo1_backup.sql"
+```
+
+### Se o dump já saiu com acentos corrompidos
+Este projeto inclui um script de correção:
+
+`tools/fix_dump_encoding.py`
+
+Gerar dump corrigido:
+
+```powershell
+python tools/fix_dump_encoding.py imociccopngrupo1_backup.sql imociccopngrupo1_backup_utf8.sql
+```
+
+Depois importar o ficheiro corrigido (`imociccopngrupo1_backup_utf8.sql`).
+
+### Verificação rápida antes de importar
+Abra o dump num editor e confirme palavras como:
+- Agência
+- São
+- Campanhã
+- Völkers
+
+Se estiverem corretas, a importação deve preservar acentos no site.
