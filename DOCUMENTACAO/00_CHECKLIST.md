@@ -196,6 +196,18 @@ Implementação concluída: eliminação de anúncios com confirmação e upload
 
 ---
 
+## Fase 22: Edição de conta do utilizador (✅ COMPLETO)
+- [x] Página dedicada para editar conta criada com layout moderno
+- [x] Atualização de username, email, primeiro e último nome
+- [x] Atualização de telefone no perfil
+- [x] Preferência de notificações por email adicionada ao perfil
+- [x] Alteração de palavra-passe integrada na mesma página
+- [x] Sessão mantida ativa após troca de palavra-passe
+- [x] Botão "Editar conta" adicionado na área pessoal e painel de anunciante
+- [x] Sincronização de email/telefone com entidade Anunciante quando aplicável
+
+---
+
 ## Nota Técnica de Migração (✅ ADICIONADA)
 - [x] Guia atualizado com boas práticas de dump/import para evitar acentos corrompidos
 - [x] Instruções para uso de `mysqldump --result-file`

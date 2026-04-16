@@ -110,11 +110,13 @@
             <div class="cta-row">
                 <a class="btn" href="{% url 'imovel:painel_anunciante' %}">Ir para painel de anunciante</a>
                 <a class="btn" style="background:#0ea5a4;" href="{% url 'imovel:criar_anuncio' %}">Criar anúncio</a>
+                <a class="btn" style="background:#475569;" href="{% url 'imovel:editar_conta' %}">Editar conta</a>
             </div>
         {% else %}
             <p class="muted">Conta comum: pode pesquisar imóveis, ver detalhes e gerir sessão.</p>
             <div class="cta-row">
                 <a class="btn" href="{% url 'imovel:lista_imoveis' %}">Pesquisar imóveis</a>
+                <a class="btn" style="background:#475569;" href="{% url 'imovel:editar_conta' %}">Editar conta</a>
             </div>
         {% endif %}
     </div>

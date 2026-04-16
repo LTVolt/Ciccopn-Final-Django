@@ -1,9 +1,9 @@
 from decimal import Decimal, InvalidOperation
 
 from django.contrib import messages
-from django.contrib.auth import login, logout
+from django.contrib.auth import login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth.forms import AuthenticationForm, PasswordChangeForm
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.shortcuts import redirect
@@ -11,7 +11,7 @@ from django.db.models import F, Prefetch
 from django.views.decorators.http import require_POST
 
 from .models import Anunciante, Concelho, Distrito, Favorito, Freguesia, Imovel, ImovelImagem, PerfilUtilizador
-from .forms import ImovelForm, RegistoForm
+from .forms import ContaPerfilForm, ImovelForm, RegistoForm
 
 
 MAX_IMAGENS_POR_ANUNCIO = 40
@@ -330,6 +330,43 @@ def painel_anunciante(request):
 		'total_favoritos': favoritos_imoveis.count(),
 	}
 	return render(request, 'imovel/painel_anunciante.html', context)
+
+
+@login_required
+def editar_conta(request):
+	perfil = _get_or_create_perfil(request.user)
+
+	if request.method == 'POST':
+		tipo_form = request.POST.get('form_type', '').strip()
+		if tipo_form == 'dados':
+			perfil_form = ContaPerfilForm(request.user, perfil, request.POST)
+			password_form = PasswordChangeForm(request.user)
+			if perfil_form.is_valid():
+				perfil_form.save()
+				messages.success(request, 'Dados da conta atualizados com sucesso.')
+				return redirect('imovel:editar_conta')
+		elif tipo_form == 'password':
+			perfil_form = ContaPerfilForm(request.user, perfil)
+			password_form = PasswordChangeForm(request.user, request.POST)
+			if password_form.is_valid():
+				user = password_form.save()
+				update_session_auth_hash(request, user)
+				messages.success(request, 'Palavra-passe atualizada com sucesso.')
+				return redirect('imovel:editar_conta')
+		else:
+			perfil_form = ContaPerfilForm(request.user, perfil)
+			password_form = PasswordChangeForm(request.user)
+			messages.error(request, 'Pedido inválido. Tente novamente.')
+	else:
+		perfil_form = ContaPerfilForm(request.user, perfil)
+		password_form = PasswordChangeForm(request.user)
+
+	context = {
+		'perfil': perfil,
+		'perfil_form': perfil_form,
+		'password_form': password_form,
+	}
+	return render(request, 'imovel/editar_conta.html', context)
 
 
 @login_required

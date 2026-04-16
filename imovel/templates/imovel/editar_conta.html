@@ -1,0 +1,254 @@
+{% extends 'imovel/base.html' %}
+
+{% block title %}Editar conta{% endblock %}
+
+{% block content %}
+<style>
+    .conta-wrap {
+        max-width: 980px;
+        margin: 0 auto;
+    }
+    .conta-hero {
+        border-radius: 14px;
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 65%, #334155 100%);
+        color: #fff;
+        padding: 20px;
+        margin-bottom: 14px;
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.24);
+    }
+    .conta-hero h2 {
+        margin: 0;
+        font-size: 1.45rem;
+    }
+    .conta-hero p {
+        margin: 8px 0 0;
+        color: #cbd5e1;
+    }
+    .conta-grid {
+        display: grid;
+        grid-template-columns: 1.2fr 1fr;
+        gap: 12px;
+    }
+    .conta-card {
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        background: #ffffff;
+        padding: 14px;
+    }
+    .conta-card h3 {
+        margin: 0;
+        color: #0f172a;
+    }
+    .conta-sub {
+        margin: 8px 0 14px;
+        color: #64748b;
+        font-size: 0.95rem;
+    }
+    .conta-fields {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+    }
+    .conta-fields .full {
+        grid-column: 1 / -1;
+    }
+    .campo label {
+        display: block;
+        font-size: 13px;
+        font-weight: 700;
+        margin-bottom: 4px;
+        color: #334155;
+    }
+    .campo input,
+    .campo select,
+    .campo textarea {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 9px 10px;
+        border: 1px solid #cbd5e1;
+        border-radius: 10px;
+        background: #fff;
+        color: #0f172a;
+    }
+    .campo input:focus,
+    .campo select:focus,
+    .campo textarea:focus {
+        outline: none;
+        border-color: #2563eb;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+    .campo-help {
+        margin-top: 4px;
+        font-size: 12px;
+        color: #64748b;
+    }
+    .checkbox-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 6px;
+    }
+    .checkbox-row input {
+        width: auto;
+    }
+    .errorlist {
+        margin: 6px 0 0;
+        padding-left: 18px;
+        color: #b91c1c;
+        font-size: 13px;
+    }
+    .acoes {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 12px;
+    }
+    .info-grid {
+        display: grid;
+        gap: 8px;
+    }
+    .info-box {
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 10px;
+        background: #f8fafc;
+    }
+    .info-label {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+        color: #64748b;
+    }
+    .info-value {
+        margin-top: 4px;
+        color: #0f172a;
+        font-weight: 700;
+    }
+    @media (max-width: 860px) {
+        .conta-grid,
+        .conta-fields {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="conta-wrap">
+    <div class="conta-hero">
+        <h2>Editar dados da conta</h2>
+        <p>Atualize os seus dados pessoais, contacto e credenciais com segurança.</p>
+    </div>
+
+    <div class="conta-grid">
+        <section class="conta-card">
+            <h3>Dados pessoais</h3>
+            <p class="conta-sub">Estes dados são usados na sua área pessoal e, quando aplicável, no perfil de anunciante.</p>
+
+            <form method="post" novalidate>
+                {% csrf_token %}
+                <input type="hidden" name="form_type" value="dados">
+
+                {% if perfil_form.non_field_errors %}
+                    <div class="errorlist">{{ perfil_form.non_field_errors }}</div>
+                {% endif %}
+
+                <div class="conta-fields">
+                    <div class="campo">
+                        <label for="{{ perfil_form.username.id_for_label }}">{{ perfil_form.username.label }}</label>
+                        {{ perfil_form.username }}
+                        {{ perfil_form.username.errors }}
+                    </div>
+
+                    <div class="campo">
+                        <label for="{{ perfil_form.email.id_for_label }}">{{ perfil_form.email.label }}</label>
+                        {{ perfil_form.email }}
+                        {{ perfil_form.email.errors }}
+                    </div>
+
+                    <div class="campo">
+                        <label for="{{ perfil_form.first_name.id_for_label }}">{{ perfil_form.first_name.label }}</label>
+                        {{ perfil_form.first_name }}
+                        {{ perfil_form.first_name.errors }}
+                    </div>
+
+                    <div class="campo">
+                        <label for="{{ perfil_form.last_name.id_for_label }}">{{ perfil_form.last_name.label }}</label>
+                        {{ perfil_form.last_name }}
+                        {{ perfil_form.last_name.errors }}
+                    </div>
+
+                    <div class="campo full">
+                        <label for="{{ perfil_form.telefone.id_for_label }}">{{ perfil_form.telefone.label }}</label>
+                        {{ perfil_form.telefone }}
+                        {{ perfil_form.telefone.errors }}
+                        {% if perfil_form.telefone.help_text %}
+                            <div class="campo-help">{{ perfil_form.telefone.help_text }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="campo full">
+                        <label class="checkbox-row" for="{{ perfil_form.receber_notificacoes_email.id_for_label }}">
+                            {{ perfil_form.receber_notificacoes_email }}
+                            <span>{{ perfil_form.receber_notificacoes_email.label }}</span>
+                        </label>
+                        {{ perfil_form.receber_notificacoes_email.errors }}
+                    </div>
+                </div>
+
+                <div class="acoes">
+                    <button class="btn" type="submit">Guardar dados</button>
+                    <a class="btn" style="background:#64748b;" href="{% url 'imovel:perfil' %}">Voltar à área pessoal</a>
+                </div>
+            </form>
+        </section>
+
+        <section class="conta-card">
+            <h3>Segurança</h3>
+            <p class="conta-sub">Altere a palavra-passe da sua conta.</p>
+
+            <form method="post" novalidate>
+                {% csrf_token %}
+                <input type="hidden" name="form_type" value="password">
+
+                {% if password_form.non_field_errors %}
+                    <div class="errorlist">{{ password_form.non_field_errors }}</div>
+                {% endif %}
+
+                <div class="campo">
+                    <label for="{{ password_form.old_password.id_for_label }}">{{ password_form.old_password.label }}</label>
+                    {{ password_form.old_password }}
+                    {{ password_form.old_password.errors }}
+                </div>
+                <div class="campo" style="margin-top:10px;">
+                    <label for="{{ password_form.new_password1.id_for_label }}">{{ password_form.new_password1.label }}</label>
+                    {{ password_form.new_password1 }}
+                    {{ password_form.new_password1.errors }}
+                </div>
+                <div class="campo" style="margin-top:10px;">
+                    <label for="{{ password_form.new_password2.id_for_label }}">{{ password_form.new_password2.label }}</label>
+                    {{ password_form.new_password2 }}
+                    {{ password_form.new_password2.errors }}
+                </div>
+
+                <div class="acoes">
+                    <button class="btn" type="submit">Atualizar palavra-passe</button>
+                </div>
+            </form>
+
+            <div class="info-grid" style="margin-top:12px;">
+                <div class="info-box">
+                    <div class="info-label">Tipo de conta</div>
+                    <div class="info-value">{{ perfil.get_tipo_utilizador_display }}</div>
+                </div>
+                <div class="info-box">
+                    <div class="info-label">Conta criada em</div>
+                    <div class="info-value">{{ perfil.criado_em|date:'d/m/Y H:i' }}</div>
+                </div>
+                <div class="info-box">
+                    <div class="info-label">Último login</div>
+                    <div class="info-value">{{ user.last_login|date:'d/m/Y H:i'|default:'N/A' }}</div>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+{% endblock %}

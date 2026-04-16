@@ -12,6 +12,7 @@ urlpatterns = [
     path('conta/registo/', views.registo, name='registo'),
     path('conta/login/', views.login_utilizador, name='login'),
     path('conta/perfil/', views.perfil, name='perfil'),
+    path('conta/editar/', views.editar_conta, name='editar_conta'),
     path('conta/anunciante/', views.painel_anunciante, name='painel_anunciante'),
     path('conta/anunciante/anuncios/novo/', views.criar_anuncio, name='criar_anuncio'),
     path('conta/anunciante/anuncios/<int:id_imovel>/editar/', views.editar_anuncio, name='editar_anuncio'),

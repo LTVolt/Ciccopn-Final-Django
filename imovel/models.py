@@ -348,6 +348,8 @@ class PerfilUtilizador(models.Model):
 
 	user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='perfil_imovel')
 	tipo_utilizador = models.CharField(max_length=20, choices=TIPO_CHOICES, default=TIPO_COMUM)
+	telefone = models.CharField(max_length=20, blank=True, default='')
+	receber_notificacoes_email = models.BooleanField(default=True)
 	criado_em = models.DateTimeField(auto_now_add=True)
 
 	class Meta:

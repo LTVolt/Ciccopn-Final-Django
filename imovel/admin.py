@@ -117,7 +117,7 @@ ImovelAdmin.inlines = [ImovelImagemInline]
 
 @admin.register(PerfilUtilizador)
 class PerfilUtilizadorAdmin(admin.ModelAdmin):
-	list_display = ('user', 'tipo_utilizador', 'criado_em')
+	list_display = ('user', 'tipo_utilizador', 'telefone', 'receber_notificacoes_email', 'criado_em')
 	list_filter = ('tipo_utilizador',)
 	search_fields = ('user__username', 'user__email')
 

@@ -66,6 +66,7 @@ Bem-vindo! Aqui encontra toda a documentação sobre o desenvolvimento do seu si
 - **[17_ESTILO_AUTENTICACAO_E_TEMA.md](17_ESTILO_AUTENTICACAO_E_TEMA.md)** - Modernização de login/registo e alternância de tema claro/escuro com LocalStorage
 - **[20_FAVORITOS_E_FILTROS_AVANCADOS.md](20_FAVORITOS_E_FILTROS_AVANCADOS.md)** - Estrela de favoritos, dashboards com favoritos e filtro/ordenação avançada na pesquisa
 - **[21_POPULARIDADE_E_ORDENACAO.md](21_POPULARIDADE_E_ORDENACAO.md)** - Contador de cliques por imóvel e ordenação por popularidade
+- **[22_EDICAO_CONTA_PERFIL.md](22_EDICAO_CONTA_PERFIL.md)** - Página moderna para editar dados de conta, contacto, preferências e palavra-passe
 
 ---
 

@@ -11,7 +11,8 @@ O portal imobiliário está funcional end-to-end com:
 - homepage em estilo SaaS;
 - tema claro/escuro persistente;
 - favoritos por utilizador;
-- medição de popularidade por visualizações.
+- medição de popularidade por visualizações;
+- gestão de conta com edição de dados e segurança.
 
 ---
 
@@ -29,6 +30,7 @@ O portal imobiliário está funcional end-to-end com:
 3. Conta e permissões
 - Registo, login, logout e área pessoal.
 - Contas comuns e anunciantes com acessos distintos.
+- Página dedicada para editar dados da conta e palavra-passe.
 
 4. Gestão de anúncios
 - Criação, edição e eliminação segura de anúncios.
@@ -51,6 +53,8 @@ O portal imobiliário está funcional end-to-end com:
   - Documento: `20_FAVORITOS_E_FILTROS_AVANCADOS.md`
 - Passo 21: Popularidade por cliques e ordenação
   - Documento: `21_POPULARIDADE_E_ORDENACAO.md`
+- Passo 22: Edição de conta do utilizador
+  - Documento: `22_EDICAO_CONTA_PERFIL.md`
 
 ---
 

@@ -129,3 +129,86 @@ class ImovelForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['id_freguesia'].queryset = Freguesia.objects.select_related('id_concelho').order_by('nome')
+
+
+class ContaPerfilForm(forms.Form):
+    username = forms.CharField(max_length=150, required=True, label='Nome de utilizador')
+    first_name = forms.CharField(max_length=30, required=True, label='Primeiro nome')
+    last_name = forms.CharField(max_length=30, required=True, label='Último nome')
+    email = forms.EmailField(required=True, label='Email')
+    telefone = forms.CharField(
+        max_length=9,
+        min_length=9,
+        required=False,
+        label='Telefone (9 dígitos)',
+        help_text='Introduza apenas os 9 dígitos (sem +351).',
+        validators=[validators.RegexValidator(r'^\d{9}$', 'Telefone deve ter exatamente 9 dígitos.')],
+    )
+    receber_notificacoes_email = forms.BooleanField(
+        required=False,
+        label='Receber notificações por email',
+    )
+
+    def __init__(self, user, perfil, *args, **kwargs):
+        self.user = user
+        self.perfil = perfil
+        super().__init__(*args, **kwargs)
+
+        telefone_inicial = (perfil.telefone or '').strip()
+        if not telefone_inicial:
+            anunciante = Anunciante.objects.filter(email__iexact=user.email).first()
+            if anunciante and anunciante.telefone:
+                telefone_inicial = anunciante.telefone.strip()
+                if telefone_inicial.startswith('+351'):
+                    telefone_inicial = telefone_inicial[4:]
+
+        self.fields['username'].initial = user.username
+        self.fields['first_name'].initial = user.first_name
+        self.fields['last_name'].initial = user.last_name
+        self.fields['email'].initial = user.email
+        self.fields['telefone'].initial = telefone_inicial
+        self.fields['receber_notificacoes_email'].initial = perfil.receber_notificacoes_email
+
+    def clean_username(self):
+        username = (self.cleaned_data.get('username') or '').strip()
+        if not username:
+            raise forms.ValidationError('Nome de utilizador é obrigatório.')
+        existe = User.objects.filter(username__iexact=username).exclude(pk=self.user.pk).exists()
+        if existe:
+            raise forms.ValidationError('Já existe um utilizador com esse nome.')
+        return username
+
+    def clean_email(self):
+        email = (self.cleaned_data.get('email') or '').strip().lower()
+        if not email:
+            raise forms.ValidationError('Email é obrigatório.')
+        existe = User.objects.filter(email__iexact=email).exclude(pk=self.user.pk).exists()
+        if existe:
+            raise forms.ValidationError('Já existe uma conta com esse email.')
+        return email
+
+    def save(self):
+        old_email = self.user.email
+        telefone = (self.cleaned_data.get('telefone') or '').strip()
+
+        self.user.username = self.cleaned_data['username']
+        self.user.first_name = self.cleaned_data['first_name']
+        self.user.last_name = self.cleaned_data['last_name']
+        self.user.email = self.cleaned_data['email']
+        self.user.save()
+
+        self.perfil.telefone = telefone
+        self.perfil.receber_notificacoes_email = self.cleaned_data.get('receber_notificacoes_email', False)
+        self.perfil.save()
+
+        anunciante_qs = Anunciante.objects.filter(email__iexact=old_email)
+        if not anunciante_qs.exists():
+            anunciante_qs = Anunciante.objects.filter(email__iexact=self.user.email)
+
+        if anunciante_qs.exists():
+            updates = {'email': self.user.email}
+            if telefone:
+                updates['telefone'] = f'+351{telefone}'
+            anunciante_qs.update(**updates)
+
+        return self.user
