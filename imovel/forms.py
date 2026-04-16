@@ -2,6 +2,8 @@ from django import forms
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
 from django.core import validators
+from django.db import transaction
+from django.db.models import Max
 
 from .models import Freguesia, Imovel, PerfilUtilizador, Anunciante, Proprietario, Consultor, Agencia
 
@@ -53,42 +55,48 @@ class RegistoForm(UserCreationForm):
         user.first_name = self.cleaned_data['first_name']
         user.last_name = self.cleaned_data['last_name']
         if commit:
-            user.save()
-            # Create PerfilUtilizador
-            from .views import _get_or_create_perfil  # Import here to avoid circular import
-            perfil = _get_or_create_perfil(user)
-            perfil.tipo_utilizador = self.cleaned_data['tipo_utilizador']
-            perfil.save()
-            # If advertiser, create Anunciante
-            if perfil.is_anunciante:
-                nome_completo = f"{user.first_name} {user.last_name}"
-                telefone_com_prefixo = f"+351{self.cleaned_data['telefone']}"
-                tipo_anunciante = int(self.cleaned_data['tipo_anunciante'])
-                # Create the related entity based on tipo_anunciante
-                if tipo_anunciante == 1:  # Proprietário
-                    proprietario = Proprietario.objects.create(nome=nome_completo)
-                    Anunciante.objects.create(
-                        email=user.email,
-                        telefone=telefone_com_prefixo,
-                        tipo=tipo_anunciante,
-                        id_proprietario=proprietario
-                    )
-                elif tipo_anunciante == 2:  # Consultor
-                    consultor = Consultor.objects.create(nome=nome_completo)
-                    Anunciante.objects.create(
-                        email=user.email,
-                        telefone=telefone_com_prefixo,
-                        tipo=tipo_anunciante,
-                        id_consultor=consultor
-                    )
-                elif tipo_anunciante == 3:  # Agência
-                    agencia = Agencia.objects.create(nome=nome_completo)
-                    Anunciante.objects.create(
-                        email=user.email,
-                        telefone=telefone_com_prefixo,
-                        tipo=tipo_anunciante,
-                        id_agencia=agencia
-                    )
+            with transaction.atomic():
+                user.save()
+                # Create PerfilUtilizador
+                from .views import _get_or_create_perfil  # Import here to avoid circular import
+                perfil = _get_or_create_perfil(user)
+                perfil.tipo_utilizador = self.cleaned_data['tipo_utilizador']
+                perfil.telefone = self.cleaned_data['telefone']
+                perfil.save()
+                # If advertiser, create Anunciante
+                if perfil.is_anunciante:
+                    nome_completo = f"{user.first_name} {user.last_name}"
+                    telefone_com_prefixo = f"+351{self.cleaned_data['telefone']}"
+                    tipo_anunciante = int(self.cleaned_data['tipo_anunciante'])
+                    # Create the related entity based on tipo_anunciante
+                    if tipo_anunciante == 1:  # Proprietário
+                        max_id = Proprietario.objects.aggregate(max_id=Max('id_proprietario')).get('max_id') or 0
+                        proprietario = Proprietario.objects.create(
+                            id_proprietario=max_id + 1,
+                            nome=nome_completo,
+                        )
+                        Anunciante.objects.create(
+                            email=user.email,
+                            telefone=telefone_com_prefixo,
+                            tipo=tipo_anunciante,
+                            id_proprietario=proprietario
+                        )
+                    elif tipo_anunciante == 2:  # Consultor
+                        consultor = Consultor.objects.create(nome=nome_completo)
+                        Anunciante.objects.create(
+                            email=user.email,
+                            telefone=telefone_com_prefixo,
+                            tipo=tipo_anunciante,
+                            id_consultor=consultor
+                        )
+                    elif tipo_anunciante == 3:  # Agência
+                        agencia = Agencia.objects.create(nome=nome_completo)
+                        Anunciante.objects.create(
+                            email=user.email,
+                            telefone=telefone_com_prefixo,
+                            tipo=tipo_anunciante,
+                            id_agencia=agencia
+                        )
         return user
 
 
