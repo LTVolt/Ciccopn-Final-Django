@@ -52,6 +52,9 @@
         border-radius: 8px;
         text-decoration: none;
     }
+    .btn-mapa {
+        background: #0f766e;
+    }
     .galeria-card {
         position: relative;
         width: 200px;
@@ -283,6 +286,7 @@
 
         <div class="filtro-acoes">
             <button class="btn" type="submit">Aplicar filtros</button>
+            <a class="btn btn-mapa" href="{% url 'imovel:mapa_distritos' %}{% if request.GET.urlencode %}?{{ request.GET.urlencode }}{% endif %}">Escolher distrito no mapa</a>
             <a class="btn-sec" href="{% url 'imovel:lista_imoveis' %}">Limpar filtros</a>
         </div>
     </form>

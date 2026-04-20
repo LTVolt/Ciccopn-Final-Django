@@ -1,13 +1,15 @@
+import unicodedata
 from decimal import Decimal, InvalidOperation
 
 from django.contrib import messages
 from django.contrib.auth import login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm, PasswordChangeForm
+from django.db.models import Count, F, Prefetch
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.shortcuts import redirect
-from django.db.models import F, Prefetch
+from django.urls import reverse
 from django.views.decorators.http import require_POST
 
 from .models import Anunciante, Concelho, Distrito, Favorito, Freguesia, Imovel, ImovelImagem, PerfilUtilizador
@@ -15,6 +17,26 @@ from .forms import ContaPerfilForm, ImovelForm, RegistoForm
 
 
 MAX_IMAGENS_POR_ANUNCIO = 40
+MAINLAND_PORTUGAL_DISTRICTS = [
+	('PT01', 'Aveiro'),
+	('PT02', 'Beja'),
+	('PT03', 'Braga'),
+	('PT04', 'Bragança'),
+	('PT05', 'Castelo Branco'),
+	('PT06', 'Coimbra'),
+	('PT07', 'Évora'),
+	('PT08', 'Faro'),
+	('PT09', 'Guarda'),
+	('PT10', 'Leiria'),
+	('PT11', 'Lisboa'),
+	('PT12', 'Portalegre'),
+	('PT13', 'Porto'),
+	('PT14', 'Santarém'),
+	('PT15', 'Setúbal'),
+	('PT16', 'Viana do Castelo'),
+	('PT17', 'Vila Real'),
+	('PT18', 'Viseu'),
+]
 
 
 def _parse_int(value, min_value=None, max_value=None):
@@ -36,6 +58,11 @@ def _parse_decimal(value):
 		return Decimal(str(value))
 	except (InvalidOperation, ValueError):
 		return None
+
+
+def _normalize_text(value):
+	normalized = unicodedata.normalize('NFKD', value or '')
+	return ''.join(ch for ch in normalized if not unicodedata.combining(ch)).casefold().strip()
 
 
 def _get_or_create_perfil(user):
@@ -103,6 +130,63 @@ def _guardar_imagens_galeria(imovel, imagens_upload):
 			imagem=ficheiro,
 			ordem=base_ordem + idx,
 		)
+
+
+def _build_query_url(base_url, query_params):
+	encoded = query_params.urlencode()
+	if not encoded:
+		return base_url
+	return f'{base_url}?{encoded}'
+
+
+def _build_distritos_mapa_context(request):
+	distritos_por_nome = {
+		_normalize_text(distrito.nome): distrito
+		for distrito in Distrito.objects.all()
+	}
+	totais_por_nome = {
+		_normalize_text(item['id_freguesia__id_concelho__id_distrito__nome']): item['total']
+		for item in Imovel.objects.values('id_freguesia__id_concelho__id_distrito__nome').annotate(total=Count('id_imovel'))
+	}
+	lista_url = reverse('imovel:lista_imoveis')
+	query_params = request.GET.copy()
+	distritos_mapa = []
+
+	for code, nome in MAINLAND_PORTUGAL_DISTRICTS:
+		distrito = distritos_por_nome.get(_normalize_text(nome))
+		distrito_id = str(distrito.pk) if distrito else ''
+		params_distrito = query_params.copy()
+		if distrito_id:
+			params_distrito['distrito'] = distrito_id
+		elif 'distrito' in params_distrito:
+			params_distrito.pop('distrito')
+		url = _build_query_url(lista_url, params_distrito) if distrito_id else ''
+		distritos_mapa.append({
+			'code': code,
+			'nome': nome,
+			'id_distrito': distrito_id,
+			'total_imoveis': totais_por_nome.get(_normalize_text(nome), 0),
+			'url': url,
+			'disponivel': bool(distrito_id),
+		})
+
+	params_sem_distrito = query_params.copy()
+	if 'distrito' in params_sem_distrito:
+		params_sem_distrito.pop('distrito')
+
+	selected_district_id = (request.GET.get('distrito') or '').strip()
+	selected_district = next(
+		(item for item in distritos_mapa if item['id_distrito'] == selected_district_id),
+		None,
+	)
+
+	return {
+		'distritos_mapa': distritos_mapa,
+		'voltar_url': _build_query_url(lista_url, query_params),
+		'limpar_distrito_url': _build_query_url(lista_url, params_sem_distrito),
+		'selected_district_id': selected_district_id,
+		'selected_district_name': selected_district['nome'] if selected_district else '',
+	}
 
 
 def home(request):
@@ -221,6 +305,11 @@ def lista_imoveis(request):
 	}
 
 	return render(request, 'imovel/lista_imoveis.html', context)
+
+
+def mapa_distritos(request):
+	context = _build_distritos_mapa_context(request)
+	return render(request, 'imovel/mapa_distritos.html', context)
 
 
 def detalhe_imovel(request, id_imovel):

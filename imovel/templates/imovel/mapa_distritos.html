@@ -1,0 +1,296 @@
+{% extends 'imovel/base.html' %}
+{% load static %}
+
+{% block title %}Pesquisa por Distrito no Mapa{% endblock %}
+
+{% block content %}
+<style>
+    .mapa-hero {
+        display: grid;
+        gap: 10px;
+        margin-bottom: 16px;
+    }
+    .mapa-hero p {
+        margin: 0;
+    }
+    .mapa-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1.45fr) minmax(280px, 0.95fr);
+        gap: 16px;
+        align-items: start;
+    }
+    .mapa-frame {
+        padding: 18px;
+        background:
+            radial-gradient(circle at top left, rgba(15, 118, 110, 0.12), transparent 42%),
+            radial-gradient(circle at bottom right, rgba(37, 99, 235, 0.12), transparent 44%),
+            var(--card-bg);
+    }
+    .mapa-frame object {
+        width: 100%;
+        height: min(72vh, 760px);
+        border: 0;
+        display: block;
+    }
+    .mapa-sidebar {
+        display: grid;
+        gap: 12px;
+    }
+    .mapa-info {
+        background: linear-gradient(155deg, rgba(15, 118, 110, 0.12), rgba(37, 99, 235, 0.06));
+    }
+    .mapa-kicker {
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        font-size: 12px;
+        color: #0f766e;
+        font-weight: 700;
+    }
+    .mapa-info h3 {
+        margin: 8px 0 6px;
+        font-size: 28px;
+    }
+    .mapa-info p {
+        margin: 0;
+    }
+    .mapa-acoes {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 14px;
+    }
+    .distritos-lista {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 8px;
+    }
+    .distrito-link {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        padding: 10px 12px;
+        border-radius: 10px;
+        border: 1px solid rgba(15, 23, 42, 0.1);
+        color: inherit;
+        text-decoration: none;
+        background: rgba(255, 255, 255, 0.75);
+        transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+    }
+    .distrito-link:hover,
+    .distrito-link:focus-visible,
+    .distrito-link.ativo {
+        transform: translateY(-1px);
+        border-color: #0f766e;
+        box-shadow: 0 10px 18px rgba(15, 118, 110, 0.12);
+    }
+    .distrito-link strong {
+        font-size: 12px;
+        color: #0f766e;
+        white-space: nowrap;
+    }
+    .distrito-link.indisponivel {
+        opacity: 0.55;
+    }
+    .mapa-nota {
+        font-size: 13px;
+        color: var(--muted);
+    }
+    @media (max-width: 860px) {
+        .mapa-layout {
+            grid-template-columns: 1fr;
+        }
+        .mapa-frame object {
+            height: 480px;
+        }
+    }
+    @media (max-width: 540px) {
+        .mapa-frame {
+            padding: 10px;
+        }
+        .mapa-frame object {
+            height: 360px;
+        }
+        .distritos-lista {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+</style>
+
+<section class="mapa-hero">
+    <h2 style="margin: 0;">Escolher distrito no mapa</h2>
+    <p class="muted">Esta página mantém a pesquisa atual intacta e adiciona apenas uma seleção visual de distrito. Ao clicar numa região, volta para a listagem com o filtro correspondente aplicado.</p>
+</section>
+
+{{ distritos_mapa|json_script:"district-map-data" }}
+
+<section class="mapa-layout">
+    <div class="card mapa-frame">
+        <object
+            id="district-map-object"
+            type="image/svg+xml"
+            data="{% static 'imovel/maps/portugal_continental_distritos.svg' %}"
+            aria-label="Mapa interativo dos distritos de Portugal Continental">
+        </object>
+        <p class="mapa-nota" style="margin: 12px 0 0;">Se o mapa não carregar no seu dispositivo, pode usar a lista de distritos à direita.</p>
+    </div>
+
+    <div class="mapa-sidebar">
+        <div class="card mapa-info">
+            <div class="mapa-kicker">Portugal Continental</div>
+            <h3 id="mapa-distrito-nome">{% if selected_district_name %}{{ selected_district_name }}{% else %}Passe o rato ou clique{% endif %}</h3>
+            <p id="mapa-distrito-meta" class="muted">{% if selected_district_name %}Distrito selecionado na pesquisa atual.{% else %}Os restantes filtros ativos serão preservados quando escolher um distrito.{% endif %}</p>
+            <div class="mapa-acoes">
+                <a class="btn" href="{{ voltar_url }}">Voltar à pesquisa</a>
+                <a class="btn-sec" href="{{ limpar_distrito_url }}">Ver todos os distritos</a>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3 style="margin-top: 0;">Distritos disponíveis</h3>
+            <div class="distritos-lista">
+                {% for item in distritos_mapa %}
+                    <a
+                        class="distrito-link {% if item.id_distrito == selected_district_id %}ativo{% endif %} {% if not item.disponivel %}indisponivel{% endif %}"
+                        href="{% if item.disponivel %}{{ item.url }}{% else %}#{% endif %}"
+                        aria-disabled="{% if item.disponivel %}false{% else %}true{% endif %}"
+                        data-distrito-link
+                        data-code="{{ item.code }}"
+                        data-name="{{ item.nome }}"
+                        data-total="{{ item.total_imoveis }}"
+                        data-available="{% if item.disponivel %}1{% else %}0{% endif %}">
+                        <span>{{ item.nome }}</span>
+                        <strong>{{ item.total_imoveis }} imóveis</strong>
+                    </a>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+    (function() {
+        const districtDataElement = document.getElementById('district-map-data');
+        const mapObject = document.getElementById('district-map-object');
+        const nameElement = document.getElementById('mapa-distrito-nome');
+        const metaElement = document.getElementById('mapa-distrito-meta');
+        const districtLinks = Array.from(document.querySelectorAll('[data-distrito-link]'));
+        const selectedDistrictId = '{{ selected_district_id|escapejs }}';
+        const districtData = districtDataElement ? JSON.parse(districtDataElement.textContent) : [];
+        const districtsByCode = Object.fromEntries(districtData.map((item) => [item.code, item]));
+        const selectedItem = districtData.find((item) => item.id_distrito === selectedDistrictId) || null;
+        const styledRegions = new Map();
+
+        function updatePanel(item, isSelected) {
+            if (!nameElement || !metaElement || !item) {
+                return;
+            }
+
+            nameElement.textContent = item.nome;
+            if (!item.disponivel) {
+                metaElement.textContent = 'Este distrito não foi encontrado na tabela de distritos e não pode ser usado como filtro.';
+                return;
+            }
+
+            const suffix = item.total_imoveis === 1 ? 'imóvel encontrado' : 'imóveis encontrados';
+            metaElement.textContent = isSelected
+                ? `Distrito selecionado na pesquisa atual. ${item.total_imoveis} ${suffix}.`
+                : `Clique para pesquisar em ${item.nome}. ${item.total_imoveis} ${suffix}.`;
+        }
+
+        function applyRegionStyle(region, item, isHovered) {
+            const isSelected = item.id_distrito && item.id_distrito === selectedDistrictId;
+            let fill = '#d1d5db';
+            let stroke = '#f8fafc';
+            let strokeWidth = '1.2';
+
+            if (item.disponivel) {
+                fill = isSelected ? '#0f766e' : '#86c7b6';
+                stroke = isSelected ? '#0b4f49' : '#ffffff';
+                strokeWidth = isSelected ? '2.2' : '1.3';
+            }
+
+            if (isHovered && item.disponivel) {
+                fill = '#0ea5a4';
+                stroke = '#0b4f49';
+                strokeWidth = '2.3';
+            }
+
+            region.setAttribute('fill', fill);
+            region.setAttribute('stroke', stroke);
+            region.setAttribute('stroke-width', strokeWidth);
+            region.style.cursor = item.disponivel ? 'pointer' : 'not-allowed';
+            region.style.transition = 'fill 160ms ease, stroke 160ms ease, stroke-width 160ms ease';
+        }
+
+        function highlightLink(code) {
+            districtLinks.forEach((link) => {
+                link.classList.toggle('ativo', link.dataset.code === code);
+            });
+        }
+
+        districtLinks.forEach((link) => {
+            const item = districtsByCode[link.dataset.code];
+            if (!item) {
+                return;
+            }
+
+            link.addEventListener('mouseenter', () => updatePanel(item, item.id_distrito === selectedDistrictId));
+            link.addEventListener('focus', () => updatePanel(item, item.id_distrito === selectedDistrictId));
+        });
+
+        if (selectedItem) {
+            updatePanel(selectedItem, true);
+        }
+
+        if (!mapObject) {
+            return;
+        }
+
+        mapObject.addEventListener('load', () => {
+            const svgDocument = mapObject.contentDocument;
+            if (!svgDocument) {
+                return;
+            }
+
+            districtData.forEach((item) => {
+                const region = svgDocument.getElementById(item.code);
+                if (!region) {
+                    return;
+                }
+
+                const title = svgDocument.createElementNS('http://www.w3.org/2000/svg', 'title');
+                title.textContent = `${item.nome}: ${item.total_imoveis} imóveis`;
+                region.appendChild(title);
+                styledRegions.set(item.code, region);
+                applyRegionStyle(region, item, false);
+
+                region.addEventListener('mouseenter', () => {
+                    applyRegionStyle(region, item, true);
+                    updatePanel(item, item.id_distrito === selectedDistrictId);
+                    highlightLink(item.code);
+                });
+
+                region.addEventListener('mouseleave', () => {
+                    applyRegionStyle(region, item, false);
+                    highlightLink(selectedItem ? selectedItem.code : '');
+                    if (selectedItem) {
+                        updatePanel(selectedItem, true);
+                    }
+                });
+
+                region.addEventListener('click', () => {
+                    if (!item.disponivel) {
+                        return;
+                    }
+                    window.location.href = item.url;
+                });
+            });
+
+            if (selectedItem) {
+                highlightLink(selectedItem.code);
+            }
+        });
+    })();
+</script>
+{% endblock %}

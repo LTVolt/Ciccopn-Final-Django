@@ -7,6 +7,7 @@ app_name = 'imovel'
 urlpatterns = [
     path('', views.home, name='home'),
     path('imoveis/', views.lista_imoveis, name='lista_imoveis'),
+    path('imoveis/mapa/', views.mapa_distritos, name='mapa_distritos'),
     path('imoveis/<int:id_imovel>/', views.detalhe_imovel, name='detalhe_imovel'),
     path('imoveis/<int:id_imovel>/favorito/', views.toggle_favorito, name='toggle_favorito'),
     path('conta/registo/', views.registo, name='registo'),
